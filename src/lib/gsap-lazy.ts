@@ -22,7 +22,7 @@ type GSAPContext = ReturnType<GSAPModule["gsap"]["context"]>;
 type SetupFunction = (gsap: GSAPModule["gsap"], ScrollTrigger: GSAPModule["ScrollTrigger"]) => void | (() => void);
 
 interface UseScrollAnimationOptions {
-  scope?: React.RefObject<HTMLElement>;
+  scope?: React.RefObject<HTMLElement | null>;
   dependencies?: DependencyList;
 }
 
