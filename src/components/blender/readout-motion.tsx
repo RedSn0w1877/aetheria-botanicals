@@ -31,10 +31,10 @@ export const NumberRoll = memo(function NumberRoll({ value, suffix, className }:
                 <motion.span
                   key={`${place}-${digit}`}
                   className="inline-block"
-                  initial={reduce ? { opacity: 0 } : { y: "70%", opacity: 0, filter: "blur(3px)" }}
-                  animate={reduce ? { opacity: 1 } : { y: "0%", opacity: 1, filter: "blur(0px)" }}
-                  exit={reduce ? { opacity: 0 } : { y: "-70%", opacity: 0, filter: "blur(3px)" }}
-                  transition={{ duration: reduce ? 0.2 : 0.7, ease: EASE_SILK, delay: reduce ? 0 : place * 0.05 }}
+                  initial={reduce ? { opacity: 0 } : { y: "50%", opacity: 0 }}
+                  animate={reduce ? { opacity: 1 } : { y: "0%", opacity: 1 }}
+                  exit={reduce ? { opacity: 0 } : { y: "-50%", opacity: 0 }}
+                  transition={{ duration: reduce ? 0 : 0.4, ease: EASE_SILK, delay: reduce ? 0 : place * 0.03 }}
                 >
                   {digit}
                 </motion.span>

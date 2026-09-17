@@ -13,7 +13,7 @@ import { TurnContext, type TurnState } from "@/components/terroir/turn-context";
 import { EASE_SILK } from "@/lib/motion";
 import { formatCoordinates, groupThousands, TERROIR_LOTS } from "@/lib/terroir-lots";
 
-const HEADLINE = "Where every note is grown.";
+const HEADLINE = "Provenance.";
 
 /**
  * Folio III — a deep rosemary band. Three harvest lots sit behind a tab selector;
