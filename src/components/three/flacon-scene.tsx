@@ -204,7 +204,7 @@ function Motes({ count, reduce }: { count: number; reduce: boolean }) {
     uniforms.uTime.value += Math.min(delta, 1 / 20) * (reduce ? 0.08 : 1);
   });
 
-  return <points ref={points} geometry={geometry} material={material} frustumCulled={false} />;
+  return <points ref={points} geometry={geometry} material={material} />;
 }
 
 function Vapour({ source, reduce }: { source: FlaconSource; reduce: boolean }) {
@@ -213,7 +213,7 @@ function Vapour({ source, reduce }: { source: FlaconSource; reduce: boolean }) {
 
   const { geometry, material } = useMemo(() => {
     const rand = mulberry32(0x5eed);
-    const n = 56;
+    const n = 20;
     const seeds = new Float32Array(n);
     for (let i = 0; i < n; i++) seeds[i] = rand();
     const g = new THREE.BufferGeometry();
@@ -566,7 +566,7 @@ export default function FlaconScene({ source, variant, parallax = 0.5, motes, cl
   const inView = useInView(wrapper, { margin: "240px 0px" });
   const reduce = useReducedMotion() ?? false;
   const pointer = useRef({ x: 0, y: 0 });
-  const moteCount = motes ?? (variant === "hero" ? 900 : 420);
+  const moteCount = motes ?? (variant === "hero" ? 200 : 100);
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
@@ -581,9 +581,9 @@ export default function FlaconScene({ source, variant, parallax = 0.5, motes, cl
     <div ref={wrapper} className={`relative h-full w-full ${className ?? ""}`}>
       <Canvas
         frameloop={inView ? "always" : "never"}
-        dpr={[1, 1.75]}
+        dpr={[1, 1.5]}
         camera={{ fov: FOV, position: [0, 1.4, 7] }}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
           gl.localClippingEnabled = true;
         }}

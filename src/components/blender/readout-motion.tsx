@@ -14,36 +14,11 @@ import { EASE_SILK } from "@/lib/motion";
  * so server HTML shows the real number.
  */
 export const NumberRoll = memo(function NumberRoll({ value, suffix, className }: { value: number; suffix?: string; className?: string }) {
-  const reduce = useReducedMotion();
-  const digits = String(Math.round(value)).split("");
+  const rounded = Math.round(value);
   return (
     <span className={`inline-flex items-baseline tabular-nums ${className ?? ""}`}>
-      <span className="sr-only">
-        {Math.round(value)}
-        {suffix}
-      </span>
-      <span aria-hidden className="inline-flex">
-        {digits.map((digit, i) => {
-          const place = digits.length - 1 - i;
-          return (
-            <span key={`place-${place}`} className="relative inline-flex overflow-hidden py-[0.08em]">
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={`${place}-${digit}`}
-                  className="inline-block"
-                  initial={reduce ? { opacity: 0 } : { y: "50%", opacity: 0 }}
-                  animate={reduce ? { opacity: 1 } : { y: "0%", opacity: 1 }}
-                  exit={reduce ? { opacity: 0 } : { y: "-50%", opacity: 0 }}
-                  transition={{ duration: reduce ? 0 : 0.4, ease: EASE_SILK, delay: reduce ? 0 : place * 0.03 }}
-                >
-                  {digit}
-                </motion.span>
-              </AnimatePresence>
-            </span>
-          );
-        })}
-        {suffix ? <span className="inline-block">{suffix}</span> : null}
-      </span>
+      {rounded}
+      {suffix}
     </span>
   );
 });
@@ -53,22 +28,6 @@ export const NumberRoll = memo(function NumberRoll({ value, suffix, className }:
  * Keyed by the text itself, so only genuine changes animate.
  */
 export const TextSwap = memo(function TextSwap({ text, className, as = "span" }: { text: string; className?: string; as?: "span" | "p" }) {
-  const reduce = useReducedMotion();
-  const Tag = as === "p" ? motion.p : motion.span;
-  return (
-    <span className="relative block overflow-hidden">
-      <AnimatePresence mode="wait" initial={false}>
-        <Tag
-          key={text}
-          className={`block ${className ?? ""}`}
-          initial={reduce ? { opacity: 0 } : { y: "40%", opacity: 0, filter: "blur(4px)" }}
-          animate={reduce ? { opacity: 1 } : { y: "0%", opacity: 1, filter: "blur(0px)" }}
-          exit={reduce ? { opacity: 0 } : { y: "-35%", opacity: 0, filter: "blur(4px)" }}
-          transition={{ duration: reduce ? 0.2 : 0.55, ease: EASE_SILK }}
-        >
-          {text}
-        </Tag>
-      </AnimatePresence>
-    </span>
-  );
+  const Tag = as === "p" ? "p" : "span";
+  return <Tag className={`block ${className ?? ""}`}>{text}</Tag>;
 });
