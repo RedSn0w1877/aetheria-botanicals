@@ -1,0 +1,125 @@
+/* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
+
+@import "tailwindcss";
+
+/*
+ * Palette — sun-bleached linen, rosemary ink, terracotta clay, brushed brass.
+ * Utilities: bg-linen, text-rosemary, border-hairline, text-brass, bg-herb, etc.
+ */
+@theme {
+  --color-linen: #f5f2eb;
+  --color-parchment: #f9f7f2;
+  --color-herb: #eae5d8;
+  --color-hairline: #dcd6c8;
+  --color-rosemary: #18231c;
+  --color-moss: #2f4034;
+  --color-sage: #7d8a74;
+  --color-terracotta: #b8583d;
+  --color-brass: #a88243;
+  --color-violet-glass: #3d2c4f;
+
+  --animate-breathe: breathe 7s ease-in-out infinite;
+}
+
+@theme inline {
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-jost), "Jost", ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes ticker {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+html {
+  background: var(--color-linen);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lenis owns scrolling. Native smooth scrolling only applies when Lenis is off (reduced motion). */
+html:not(.lenis) {
+  scroll-behavior: smooth;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  background: var(--color-linen);
+  color: var(--color-rosemary);
+  font-feature-settings: "kern", "liga", "onum";
+}
+
+section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+::selection {
+  background: var(--color-terracotta);
+  color: var(--color-parchment);
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-brass);
+  outline-offset: 4px;
+}
+
+/*
+ * Paper fibre. A still, fine noise laid over everything with multiply blending,
+ * so the linen reads as printed stock rather than a flat hex value.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.11 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  opacity: 0.09;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Printed or saved-as-PDF pages carry a visible watermark. */
+@media print {
+  body::after {
+    content: "© 2026 HVNF STUDIOS — PORTFOLIO SAMPLE — DO NOT REDISTRIBUTE";
+    position: fixed;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    font: italic 30px/1 Georgia, serif;
+    letter-spacing: 0.18em;
+    color: rgb(24 35 28 / 0.28);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
