@@ -3,8 +3,6 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 import { memo } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { EASE_SILK } from "@/lib/motion";
 
 /**
  * Number pop-in (studio recipe, rebuilt on motion): each digit sits in its own mask

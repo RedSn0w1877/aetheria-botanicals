@@ -44,7 +44,7 @@ export function AllocationDrawer() {
   const reduce = useReducedMotion();
 
   useScrollAnimation(
-    (gsap, ScrollTrigger) => {
+    (gsap) => {
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const section = sectionRef.current;

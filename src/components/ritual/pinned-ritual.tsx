@@ -6,6 +6,7 @@ import { motion, useMotionValue } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import { useGlide } from "@/components/providers/lenis-provider";
 import { useScrollAnimation } from "@/lib/gsap-lazy";
+import type { ScrollTrigger as ScrollTriggerInstance } from "gsap/ScrollTrigger";
 import { EASE_SILK } from "@/lib/motion";
 import type { RitualPhase } from "@/lib/ritual-phases";
 import { PhaseMetrics, RitualPlate } from "./phase-parts";
@@ -35,7 +36,7 @@ export function PinnedRitual({ phases }: { phases: readonly RitualPhase[] }) {
   const stage = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLSpanElement>(null);
-  const pinTrigger = useRef<any | null>(null);
+  const pinTrigger = useRef<ScrollTriggerInstance | null>(null);
   const activeRef = useRef(0);
 
   const [active, setActive] = useState(0);
@@ -91,7 +92,7 @@ export function PinnedRitual({ phases }: { phases: readonly RitualPhase[] }) {
           },
           // GSAP fires the first update while the tween is still being constructed,
           // so read progress from the tween itself (`this`), not the outer variable.
-          onUpdate(this: any) {
+          onUpdate(this: gsap.core.Tween) {
             markActive(this.progress());
           },
         });

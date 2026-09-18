@@ -13,7 +13,6 @@ import { useGlide } from "@/components/providers/lenis-provider";
 import { BrassLink } from "@/components/ui/brass-link";
 import { TickerBand } from "@/components/ui/ticker-band";
 import { BRAND, COPYRIGHT_LINE, FICTION_NOTICE, STUDIO } from "@/lib/copyright";
-import { useScrollAnimation } from "@/lib/gsap-lazy";
 import { EASE_SILK } from "@/lib/motion";
 
 const ARCHIVE = ["Archive AE/019/2026", "Ledger vol. VII", "Plate 04 of 06"] as const;
