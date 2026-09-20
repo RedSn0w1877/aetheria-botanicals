@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s — Aetheria Botanicals",
   },
   description:
-    "Small-batch botanical perfume, cold-macerated for 180 days from wild-foraged plants. A portfolio concept by HVNF Studios.",
+    "Small-batch botanical perfume, made from wild plants left to steep in the cold for 180 days. A portfolio concept by HVNF Studios.",
   applicationName: "Aetheria Botanicals",
   authors: [{ name: STUDIO }],
   creator: STUDIO,

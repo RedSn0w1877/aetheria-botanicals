@@ -112,7 +112,7 @@ export function MonographFooter() {
 
         <div className="mt-8 flex flex-col gap-8 md:mt-12 md:flex-row md:items-end md:justify-between">
           <p className="max-w-xl font-serif text-[clamp(1.5rem,2.6vw,2.2rem)] font-light italic leading-snug text-linen/90">
-            Botanical perfume, cold-extracted from wild-foraged plants and poured by hand in small batches.
+            Botanical perfume, pressed cold from wild plants and poured by hand in small batches.
           </p>
           <div className="shrink-0">
             <BrassLink tone="linen" onClick={() => glideTo(0, { offset: 0, duration: 2.6 })}>
