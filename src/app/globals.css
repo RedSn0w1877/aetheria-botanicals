@@ -47,79 +47,95 @@
   }
 }
 
-html {
-  background: var(--color-linen);
-  color-scheme: light;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+@layer base {
+  html {
+    background: var(--color-linen);
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-/* Lenis owns scrolling. Native smooth scrolling only applies when Lenis is off (reduced motion). */
-html:not(.lenis) {
-  scroll-behavior: smooth;
-}
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-.lenis.lenis-stopped {
-  overflow: clip;
-}
+  /* Lenis owns scrolling. Native smooth scrolling only applies when Lenis is off (reduced motion). */
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis:not(.lenis-autoToggle).lenis-stopped {
+    overflow: clip;
+  }
+  .lenis.lenis-autoToggle {
+    transition-property: overflow;
+    transition-duration: 1ms;
+    transition-behavior: allow-discrete;
+  }
 
-body {
-  position: relative;
-  min-height: 100vh;
-  background: var(--color-linen);
-  color: var(--color-rosemary);
-  font-feature-settings: "kern", "liga", "onum";
-}
+  body {
+    position: relative;
+    min-height: 100vh;
+    background: var(--color-linen);
+    color: var(--color-rosemary);
+    font-feature-settings: "kern", "liga", "onum";
+  }
 
-section[id] {
-  scroll-margin-top: 4.5rem;
-}
+  section[id] {
+    scroll-margin-top: 4.5rem;
+  }
 
-::selection {
-  background: var(--color-terracotta);
-  color: var(--color-parchment);
-}
+  ::selection {
+    background: var(--color-terracotta);
+    color: var(--color-parchment);
+  }
 
-:focus-visible {
-  outline: 1px solid var(--color-brass);
-  outline-offset: 4px;
-}
+  :focus-visible {
+    outline: 1px solid var(--color-brass);
+    outline-offset: 4px;
+  }
 
-/*
- * Paper fibre. A still, fine noise laid over everything with multiply blending,
- * so the linen reads as printed stock rather than a flat hex value.
- */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.11 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-  opacity: 0.09;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-
-/* Printed or saved-as-PDF pages carry a visible watermark. */
-@media print {
-  body::after {
-    content: "© 2026 HVNF STUDIOS — PORTFOLIO SAMPLE — DO NOT REDISTRIBUTE";
+  /*
+   * Paper fibre. A still, fine noise laid over everything with multiply blending,
+   * so the linen reads as printed stock rather than a flat hex value.
+   */
+  body::before {
+    content: "";
     position: fixed;
-    inset: 50% auto auto 50%;
-    transform: translate(-50%, -50%) rotate(-28deg);
-    font: italic 30px/1 Georgia, serif;
-    letter-spacing: 0.18em;
-    color: rgb(24 35 28 / 0.28);
-    white-space: nowrap;
+    inset: 0;
+    z-index: 60;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.11 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+    opacity: 0.09;
+    mix-blend-mode: multiply;
     pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto !important; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Printed or saved-as-PDF pages carry a visible watermark. */
+  @media print {
+    body::after {
+      content: "© 2026 HVNF STUDIOS — PORTFOLIO SAMPLE — DO NOT REDISTRIBUTE";
+      position: fixed;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%, -50%) rotate(-28deg);
+      font: italic 30px/1 Georgia, serif;
+      letter-spacing: 0.18em;
+      color: rgb(24 35 28 / 0.28);
+      white-space: nowrap;
+      pointer-events: none;
+    }
   }
 }

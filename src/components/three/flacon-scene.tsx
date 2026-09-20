@@ -8,6 +8,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { useInView, useReducedMotion } from "motion/react";
 import { COPYRIGHT_MARK } from "@/lib/copyright";
+import { useMedia, usePageVisible } from "@/lib/use-media";
 import type { FlaconSource } from "@/lib/flacon-store";
 import type { FlaconSceneProps } from "./flacon-types";
 import {
@@ -84,7 +85,7 @@ const SOFT_FRAGMENT = /* glsl */ `
   varying float vAlpha;
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.0, d);
+    float a = 1.0 - smoothstep(0.0, 0.5, d);
     gl_FragColor = vec4(vColor, a * a * vAlpha * uOpacity);
     #include <colorspace_fragment>
   }
@@ -563,25 +564,28 @@ function Flacon({
 
 export default function FlaconScene({ source, variant, parallax = 0.5, motes, className }: FlaconSceneProps) {
   const wrapper = useRef<HTMLDivElement>(null);
-  const inView = useInView(wrapper, { margin: "240px 0px" });
+  const inView = useInView(wrapper, { margin: "60px 0px" });
+  const visible = usePageVisible();
+  const compact = useMedia("(max-width: 767px), (pointer: coarse)");
   const reduce = useReducedMotion() ?? false;
   const pointer = useRef({ x: 0, y: 0 });
   const moteCount = motes ?? (variant === "hero" ? 200 : 100);
 
   useEffect(() => {
+    if (!inView || !visible || compact || reduce) return;
     const onMove = (event: PointerEvent) => {
       pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.current.y = -((event.clientY / window.innerHeight) * 2 - 1);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, []);
+  }, [inView, visible, compact, reduce]);
 
   return (
     <div ref={wrapper} className={`relative h-full w-full ${className ?? ""}`}>
       <Canvas
-        frameloop={inView ? "always" : "never"}
-        dpr={[1, 1.5]}
+        frameloop={inView && visible ? "always" : "never"}
+        dpr={compact ? [1, 1.25] : [1, 1.5]}
         camera={{ fov: FOV, position: [0, 1.4, 7] }}
         gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
@@ -604,11 +608,11 @@ export default function FlaconScene({ source, variant, parallax = 0.5, motes, cl
           <Lightformer form="rect" intensity={0.9} color="#eadfcb" position={[0, -1.5, 3]} scale={[8, 1.5, 1]} target={[0, 1, 0]} />
         </Environment>
 
-        <Flacon source={source} variant={variant} parallax={parallax} pointer={pointer} reduce={reduce} />
-        <Motes count={moteCount} reduce={reduce} />
-        <Petals count={variant === "hero" ? 9 : 5} reduce={reduce} />
+        <Flacon source={source} variant={variant} parallax={compact || reduce ? 0 : parallax} pointer={pointer} reduce={reduce} />
+        {!reduce ? <Motes count={compact ? Math.min(moteCount, 80) : moteCount} reduce={false} /> : null}
+        {!reduce ? <Petals count={compact ? 4 : variant === "hero" ? 9 : 5} reduce={false} /> : null}
 
-        <ContactShadows position={[0, 0.001, 0]} scale={3.2} blur={2.6} far={1.2} opacity={0.38} resolution={512} color="#18231c" />
+        <ContactShadows position={[0, 0.001, 0]} scale={3.2} blur={2.6} far={1.2} opacity={0.38} resolution={compact ? 256 : 512} color="#18231c" />
       </Canvas>
 
       <p className="pointer-events-none absolute bottom-2 right-3 select-none font-sans text-[9px] uppercase tracking-[0.3em] text-rosemary/40">

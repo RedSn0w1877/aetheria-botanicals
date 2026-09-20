@@ -1,6 +1,6 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
-import confetti from "canvas-confetti";
+import type { Options } from "canvas-confetti";
 
 /** A single almond-shaped petal with a slightly lifted tip. */
 const PETAL_PATH = "M0 0 C5 -7 15 -9 22 -2 C23 -1 23 1 22 2 C15 9 5 7 0 0 Z";
@@ -12,13 +12,14 @@ const PETAL_COLOURS = ["#b8583d", "#a88243", "#7d8a74", "#f9f7f2", "#c9a36a"];
  * sideways drift so they float down like something shaken from a branch.
  * Only ever called from an event/timer callback (never during render).
  */
-export function releasePetals() {
-  if (typeof window === "undefined") return;
+export async function releasePetals() {
+  if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const confetti = (await import("canvas-confetti")).default;
   const petal = confetti.shapeFromPath({ path: PETAL_PATH });
   const wide = window.matchMedia("(min-width: 640px)").matches;
   const originX = wide ? 0.78 : 0.5;
 
-  const shared: confetti.Options = {
+  const shared: Options = {
     shapes: [petal],
     colors: PETAL_COLOURS,
     gravity: 0.32,

@@ -5,6 +5,7 @@
 import Lenis from "lenis";
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { useMedia } from "@/lib/use-media";
 
 type Target = string | HTMLElement | number;
 
@@ -37,11 +38,12 @@ export const useGlide = () => useContext(ScrollContext);
  */
 export function LenisProvider({ children }: { children: ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
+  const smooth = useMedia("(pointer: fine) and (prefers-reduced-motion: no-preference)");
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!smooth) return;
 
-    const lenis = new Lenis({ lerp: 0.07, wheelMultiplier: 0.9, smoothWheel: true });
+    const lenis = new Lenis({ lerp: 0.07, wheelMultiplier: 0.9, smoothWheel: true, autoToggle: true });
     lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -54,7 +56,7 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       lenis.destroy();
       lenisRef.current = null;
     };
-  }, []);
+  }, [smooth]);
 
   const api = useMemo<ScrollApi>(
     () => ({

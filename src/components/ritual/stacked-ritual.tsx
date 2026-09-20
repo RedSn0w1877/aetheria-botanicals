@@ -3,7 +3,7 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { EASE_SILK } from "@/lib/motion";
 import type { RitualPhase } from "@/lib/ritual-phases";
 import { PhaseMetrics, RitualPlate } from "./phase-parts";
@@ -20,11 +20,14 @@ export function StackedRitual({ phases }: { phases: readonly RitualPhase[] }) {
   const tabs = useRef<HTMLDivElement>(null);
   // Starts drawn, so the first paint (and no-JS visitors) see a finished plate.
   const progress = useMotionValue(1);
+  const drawing = useRef<{ stop: () => void } | null>(null);
+  useEffect(() => () => drawing.current?.stop(), []);
   const phase = phases[index] ?? phases[0];
 
   const select = (next: number) => {
     const clamped = (next + phases.length) % phases.length;
     if (clamped === index) return;
+    drawing.current?.stop();
     setIndex(clamped);
     setPlays((n) => n + 1);
     if (reduce) {
@@ -32,7 +35,7 @@ export function StackedRitual({ phases }: { phases: readonly RitualPhase[] }) {
       return;
     }
     progress.set(0);
-    animate(progress, 1, { duration: 2.4, ease: EASE_SILK, delay: 0.35 });
+    drawing.current = animate(progress, 1, { duration: 2.4, ease: EASE_SILK, delay: 0.35 });
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
