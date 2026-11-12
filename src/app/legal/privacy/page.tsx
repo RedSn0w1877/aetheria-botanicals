@@ -1,36 +1,31 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 import type { Metadata } from "next";
-import { LegalFolio } from "@/components/legal/legal-folio";
+import { LegalPage } from "@/components/legal/legal-page";
 
 export const metadata: Metadata = {
-  title: "Privacy",
+  title: "Notes on privacy",
   description: "How the Aetheria Botanicals concept site by HVNF Studios handles information.",
 };
 
 export default function PrivacyPage() {
   return (
-    <LegalFolio
-      title="Privacy"
-      updated="17 September 2026"
+    <LegalPage
+      title="Notes on privacy"
+      revised="31 October 2026"
       clauses={[
         {
           heading: "Nothing is collected",
           body: (
             <p>
-              The reservation drawer, monogram field and blend composer run entirely in your browser. What you type
-              is never sent to a server, stored in a database or shared with anyone. Reload the page and it is gone.
+              The commission letter, monogram tag and scent composer run entirely in your browser. What you type is
+              never sent to a server, stored in a database or shared with anyone. Reload the page and it is gone.
             </p>
           ),
         },
         {
           heading: "No tracking",
-          body: (
-            <p>
-              This site sets no analytics, advertising or tracking cookies. A single session marker may be kept in
-              your browser so the opening sequence only plays once per visit.
-            </p>
-          ),
+          body: <p>This site sets no cookies and keeps nothing in your browser’s storage.</p>,
         },
         {
           heading: "Hosting",
@@ -42,9 +37,12 @@ export default function PrivacyPage() {
           ),
         },
         {
-          heading: "Fonts",
+          heading: "Fonts and images",
           body: (
-            <p>Typefaces are bundled with the site at build time, so no request is made to a font service while you browse.</p>
+            <p>
+              Typefaces and images are bundled with the site, so no request is made to any other service while you
+              browse.
+            </p>
           ),
         },
         {

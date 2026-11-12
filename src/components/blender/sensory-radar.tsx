@@ -2,20 +2,23 @@
 
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
-import { useMemo } from "react";
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
-import { AXES, type AxisName, type SensoryVector } from "@/lib/blend-formulas";
-import { COPYRIGHT_MARK } from "@/lib/copyright";
-import { EASE_SILK } from "@/lib/motion";
+import { memo, useMemo, type CSSProperties } from "react";
+import { AXES, type SensoryVector } from "@/lib/blend-formulas";
+import { axisLabel, dominantSentence } from "./formula-text";
+import s from "./compose.module.css";
 
+/*
+ * Drawn at 1:1 on a 380-unit viewBox, so its 13-unit labels read as 13px wherever there is room for
+ * the full figure (it shrinks with the column on phones).
+ */
 const W = 380;
-const H = 330;
+const H = 272;
 const CX = W / 2;
-const CY = 165;
+const CY = 138;
 const R = 96;
 const RINGS = [0.25, 0.5, 0.75, 1];
 
-/** Axis i points straight up and the rest follow clockwise. */
+/** Axis 0 points straight up and the rest follow clockwise. */
 function point(axis: number, radius: number): [number, number] {
   const angle = -Math.PI / 2 + (axis * Math.PI * 2) / AXES.length;
   // Rounded: server and browser print long floats differently, which breaks hydration.
@@ -24,113 +27,77 @@ function point(axis: number, radius: number): [number, number] {
 
 const fmt = (n: number) => n.toFixed(2);
 
-function hexPath(radius: number): string {
-  return `${AXES.map((_, i) => {
-    const [x, y] = point(i, radius);
-    return `${i === 0 ? "M" : "L"}${fmt(x)} ${fmt(y)}`;
-  }).join(" ")} Z`;
-}
+const polygon = (points: readonly (readonly [number, number])[]) =>
+  `${points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${fmt(x)} ${fmt(y)}`).join(" ")} Z`;
+
+/** The rings and spokes never change: one path, built once. */
+const GRID = [
+  ...RINGS.map((ring) => polygon(AXES.map((_, i) => point(i, R * ring)))),
+  ...AXES.map((_, i) => {
+    const [x, y] = point(i, R);
+    return `M${fmt(CX)} ${fmt(CY)} L${fmt(x)} ${fmt(y)}`;
+  }),
+].join(" ");
+
+/** Where each two-line label sits: name above, value below, anchored away from the figure. */
+const LABELS = AXES.map((axis, i) => {
+  const [x, y] = point(i, R + 14);
+  if (i === 0) return { axis, x, anchor: "middle" as const, nameY: y - 14, valueY: y };
+  if (i === 3) return { axis, x, anchor: "middle" as const, nameY: y + 4, valueY: y + 18 };
+  return { axis, x, anchor: i < 3 ? ("start" as const) : ("end" as const), nameY: y - 2, valueY: y + 12 };
+});
 
 /** Weighted profile values sit well under 1, so stretch them to read, keeping a small floor. */
 const displayRadius = (value: number) => R * (0.08 + 0.92 * Math.min(1, value / 0.8));
 
 /**
- * Sensory balance: a hexagonal radar. The polygon always has six vertices in the same
- * order, so motion can interpolate the `d` string number-by-number and the shape morphs.
+ * The sensory balance: a hexagonal radar. The polygon always has six vertices in the same order, so
+ * CSS can morph it: the shape carries its path in CSS `d` (transition 600ms silk) as well as in the
+ * attribute, and the vertex dots move by CSS cx/cy. Browsers without CSS `d` (Safari) simply snap.
+ * The figcaption says the same thing in a sentence.
  */
-export function SensoryRadar({ profile, tags }: { profile: SensoryVector; tags: readonly AxisName[] }) {
-  const reduce = useReducedMotion();
+export const SensoryRadar = memo(function SensoryRadar({
+  profile,
+  className,
+}: {
+  profile: SensoryVector;
+  className?: string;
+}) {
   const vertices = useMemo(() => profile.map((value, i) => point(i, displayRadius(value))), [profile]);
-  const d = useMemo(() => `${vertices.map(([x, y], i) => `${i === 0 ? "M" : "L"}${fmt(x)} ${fmt(y)}`).join(" ")} Z`, [vertices]);
-  const morph = reduce ? { duration: 0 } : { duration: 1.4, ease: EASE_SILK };
-  const description = useMemo(() => AXES.map((axis, i) => `${axis} ${Math.round(profile[i] * 100)}`).join(", "), [profile]);
+  const d = useMemo(() => polygon(vertices), [vertices]);
+  const description = AXES.map((axis, i) => `${axisLabel(axis)} ${Math.round(profile[i] * 100)}`).join(", ");
 
   return (
-    <figure className="min-w-0">
+    <figure className={className}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="mx-auto h-auto w-full max-w-[420px]"
+        className={s.radarSvg}
         role="img"
         aria-label={`Sensory balance out of 100: ${description}.`}
       >
-        {RINGS.map((ring) => (
-          <path key={ring} d={hexPath(R * ring)} fill="none" stroke="#dcd6c8" strokeWidth={ring === 1 ? 1 : 0.75} />
-        ))}
-        {AXES.map((axis, i) => {
-          const [x, y] = point(i, R);
-          return <line key={axis} x1={CX} y1={CY} x2={x} y2={y} stroke="#dcd6c8" strokeWidth={0.75} />;
-        })}
-        <motion.path
-          initial={false}
-          animate={{ d }}
-          transition={morph}
-          fill="#b8583d"
-          fillOpacity={0.14}
-          stroke="#a88243"
-          strokeWidth={1.25}
-          strokeLinejoin="round"
-        />
+        <path className={s.radarGrid} d={GRID} />
+        <path className={s.radarShape} d={d} style={{ d: `path('${d}')` } as CSSProperties} />
         {vertices.map(([x, y], i) => (
-          <motion.circle
+          <circle
             key={AXES[i]}
             r={2.6}
-            fill="#f9f7f2"
-            stroke="#a88243"
-            strokeWidth={1}
-            initial={false}
-            animate={{ cx: x, cy: y }}
-            transition={morph}
+            cx={x}
+            cy={y}
+            style={{ cx: `${x}px`, cy: `${y}px` } as CSSProperties}
           />
         ))}
-        {AXES.map((axis, i) => {
-          const [x, y] = point(i, R + 16);
-          const anchor = Math.abs(x - CX) < 4 ? "middle" : x > CX ? "start" : "end";
-          const dy = i === 0 ? -4 : i === 3 ? 12 : 4;
-          const dominant = tags.includes(axis);
-          return (
-            <text
-              key={axis}
-              x={x}
-              y={y + dy}
-              textAnchor={anchor}
-              className="font-sans uppercase"
-              style={{ fontSize: 9.5, letterSpacing: "0.16em", transition: "fill 900ms ease" }}
-              fill={dominant ? "#18231c" : "rgba(24,35,28,0.55)"}
-            >
-              {axis}
-              <tspan x={x} dy={11} className="font-serif" style={{ fontSize: 11, letterSpacing: 0 }} fill="#a88243">
-                {Math.round(profile[i] * 100)}
-              </tspan>
-            </text>
-          );
-        })}
-        <text x={W - 2} y={H - 4} textAnchor="end" className="font-sans" style={{ fontSize: 6.5, letterSpacing: "0.2em" }} fill="rgba(24,35,28,0.35)">
-          {COPYRIGHT_MARK.toUpperCase()}
-        </text>
+        {LABELS.map(({ axis, x, anchor, nameY, valueY }, i) => (
+          <text key={axis} textAnchor={anchor}>
+            <tspan x={fmt(x)} y={fmt(nameY)}>
+              {axisLabel(axis)}
+            </tspan>
+            <tspan x={fmt(x)} y={fmt(valueY)}>
+              {Math.round(profile[i] * 100)}
+            </tspan>
+          </text>
+        ))}
       </svg>
-      <figcaption className="mt-1">
-        <span className="sr-only">Dominant character: {tags.join(", ")}.</span>
-        <LayoutGroup id="blender-tags">
-          <ul aria-hidden className="flex min-h-[2.25rem] flex-wrap justify-center gap-2">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {tags.map((tag, i) => (
-                <motion.li
-                  key={tag}
-                  layout
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10, filter: "blur(4px)" }}
-                  transition={reduce ? { duration: 0.2 } : { duration: 0.8, ease: EASE_SILK }}
-                  className="flex items-center gap-2 rounded-full border border-brass/60 px-3 py-1.5 font-sans text-[9px] uppercase tracking-[0.24em] text-rosemary sm:text-[10px]"
-                >
-                  <span className="font-serif text-xs italic normal-case tracking-normal text-brass">{i + 1}</span>
-                  {tag}
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </ul>
-        </LayoutGroup>
-      </figcaption>
+      <figcaption className={s.radarCaption}>{dominantSentence(profile)}</figcaption>
     </figure>
   );
-}
+});

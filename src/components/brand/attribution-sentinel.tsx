@@ -13,7 +13,7 @@ const MIN_QUOTED_CHARS = 140;
  */
 export function AttributionSentinel() {
   useEffect(() => {
-    console.info(`%c${COPYRIGHT_LINE}`, "font: italic 13px Georgia, serif; color: #a88243;");
+    console.info(`%c${COPYRIGHT_LINE}`, "font: italic 13px Georgia, serif; color: #7b5a26;");
 
     const handleCopy = (event: ClipboardEvent) => {
       const focused = document.activeElement;

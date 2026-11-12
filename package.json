@@ -9,7 +9,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "export-flacon": "node blender/export-flacon.mts",
+    "encode-renders": "node blender/encode.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

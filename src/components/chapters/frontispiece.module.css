@@ -1,0 +1,467 @@
+/* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
+
+/*
+ * I · Frontispiece: the title page, plus Plate I's niche (hero/apothecary-arch.tsx), the drawn stems and
+ * the leaf light (hero/leaf-light.tsx), which only ever appear here. Type uses longhands so the
+ * inherited old-style figures survive. Nothing here animates except the leaf light's drift.
+ */
+
+/* ------------------------------------------------------------------ the section */
+
+.frontispiece {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: flex;
+  flex-direction: column;
+}
+
+/* On a desktop screen the title page is exactly one screen: links 34px above its foot. */
+@media (min-width: 1024px) and (min-height: 700px) {
+  .frontispiece {
+    min-height: 100svh;
+  }
+}
+
+/* One baked image, overhanging by 12px so the ±8px pointer drift never shows an edge. */
+.leafLight {
+  position: absolute;
+  inset: -12px;
+  z-index: -1;
+  width: calc(100% + 24px);
+  max-width: none;
+  height: calc(100% + 24px);
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  transition: transform 900ms var(--ease-silk);
+}
+
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--gx) 34px;
+  text-align: center;
+}
+
+/* On a desktop screen the links and the price line sit just above the page's foot. */
+@media (min-width: 1024px) {
+  .page {
+    padding-bottom: 22px;
+  }
+}
+
+.title {
+  /* Two balanced lines at 1440. */
+  max-width: 13em;
+  margin: clamp(24px, 3.6vh, 40px) auto 0;
+  font-size: clamp(3rem, 5vw, 6.5rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.subline {
+  margin-top: 14px;
+  font-family: var(--font-text);
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.5;
+  /* Full ink rather than the spec's moss: it sits over the leaf light's shade (8.07:1 on the stock). */
+  color: var(--color-rosemary);
+}
+
+/* ------------------------------------------------------------------- the plate */
+
+/*
+ * Phones: niche, imprint, then the two notes stacked. 640px up: the notes side by side under it.
+ * 1024px up: notes in the margins either side of the niche, the imprint under the baseline.
+ * The top padding leaves room for the birch twig, which reaches 10% above the niche.
+ */
+.plate {
+  display: grid;
+  grid-template-areas: "arch" "caption" "left" "right";
+  justify-items: center;
+  width: 100%;
+  margin: 0;
+  padding-top: 44px;
+}
+
+.noteLeft {
+  grid-area: left;
+  margin-top: 28px;
+}
+
+.noteRight {
+  grid-area: right;
+  margin-top: 18px;
+}
+
+/*
+ * The perfumer's own note under "180 days": who picks the plants and where, signed. A short brass
+ * rule sets it apart from the figure above, the way a hand-added note sits under a printed one.
+ */
+.signed {
+  margin-top: 22px;
+  padding-top: 14px;
+  background: linear-gradient(var(--color-brass), var(--color-brass)) 0 0 / 28px 1px no-repeat;
+}
+
+@media (max-width: 639px) {
+  .noteRight {
+    display: grid;
+    justify-items: center;
+  }
+
+  .signed {
+    background-position: 50% 0;
+  }
+}
+
+.caption {
+  grid-area: caption;
+  /* Close under the brass baseline, so the caption reads as the plate's own line. */
+  margin-top: 12px;
+}
+
+@media (min-width: 640px) {
+  .plate {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "arch arch" "caption caption" "left right";
+    column-gap: 40px;
+  }
+
+  .noteLeft {
+    justify-self: end;
+  }
+
+  .noteRight {
+    justify-self: start;
+    margin-top: 28px;
+  }
+}
+
+
+
+@media (min-width: 1024px) {
+  .plate {
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: "left arch right" ". caption .";
+    /* The stems overhang the niche by 22% of its width each side: clear them, then the spec's 48px. */
+    column-gap: calc(var(--niche-w) * 0.22 + 28px);
+    align-items: center;
+    /* Any spare height goes either side of the plate, so it floats centred between title and links. */
+    margin-block: auto;
+  }
+
+  .noteLeft,
+  .noteRight {
+    width: 250px;
+    margin-top: 0;
+  }
+
+  .noteRight > * + * {
+    margin-top: 22px;
+  }
+
+  .noteLeft {
+    justify-self: end;
+  }
+
+  .noteRight {
+    justify-self: start;
+  }
+}
+
+/* ------------------------------------------------------------------- the niche */
+
+.arch {
+  --niche-w: min(62vw, 300px);
+  grid-area: arch;
+  position: relative;
+  width: var(--niche-w);
+  aspect-ratio: 5 / 7;
+}
+
+@media (min-width: 1024px) {
+  /* Set on the plate so its column gap can clear the stems; the niche inherits it. */
+  .plate,
+  .arch {
+    /* 286 x 400 at 1440 x 900, 430 x 602 at 2560 x 1440. */
+    --niche-w: clamp(220px, calc((100svh - 500px) * 0.714), 430px);
+  }
+}
+
+.niche {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--niche-w) / 2) calc(var(--niche-w) / 2) 0 0;
+  overflow: clip;
+  background: var(--color-parchment);
+}
+
+/*
+ * The keystone: a small diamond in a brass hairline, centred on the crown. Filled with gouache so it
+ * reads as a heightened catch-light on the kraft, not a hole in it.
+ */
+.arch::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  translate: -50% -50%;
+  rotate: 45deg;
+  border: 1px solid var(--color-brass);
+  background: var(--color-gouache);
+}
+
+/* The brass baseline the niche stands on, running 40% past it on both sides. */
+.arch::after {
+  content: "";
+  position: absolute;
+  left: -40%;
+  right: -40%;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-brass);
+}
+
+/* The engraver's hatching and gouache heightening over the photograph (apothecary-arch.tsx). */
+.heightening {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/*
+ * The hatching: sepia ink through the hatch file as a mask (a mask image is never an LCP candidate),
+ * multiplied so it sinks into the amber like a printed plate. It is drawn in once from first paint,
+ * a left-to-right pass after the stems begin; complete for no-JS, lite and reduced motion.
+ */
+.hatch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--color-rosemary);
+  mask: var(--hatch) center / 100% 100% no-repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html.js:not([data-lite])) .hatch {
+    animation: hatch-in 1s var(--ease-leaf) 0.7s both;
+  }
+}
+
+@keyframes hatch-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/*
+ * The brass furniture: the generated graduations file as a mask over a brass fill (its alpha carries
+ * the minor/major weights). A mask image is never an LCP candidate, unlike the <img> it replaced.
+ */
+.graduations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--color-brass);
+  mask: var(--grad) center / 100% 100% no-repeat;
+}
+
+/* Graduation labels, set in the page's own italic and anchored where the old SVG text sat. */
+.gradLabel,
+.gradUnit {
+  position: absolute;
+  left: calc(466 / 500 * 100%);
+  translate: -100% -80%;
+  font-family: var(--font-text);
+  font-style: italic;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--color-brass-ink);
+  pointer-events: none;
+}
+
+/*
+ * The unit sits a fixed type-step above the "100" (same anchor, lifted by its own line plus a gap), not
+ * a percentage of the arch: on a phone the arch is short and a percentage gap let "ml" sit on "100".
+ */
+.gradUnit {
+  top: calc(304 / 700 * 100%);
+  translate: -100% calc(-80% - 1.4em);
+  font-size: 10px;
+}
+
+/* The vetiver and birch drawing overhangs the niche exactly as the old hero's did. */
+.stems {
+  position: absolute;
+  left: -22%;
+  top: -10%;
+  width: 144%;
+  height: 114%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------- the links */
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 14px 46px;
+  margin-top: 16px;
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.compose {
+  color: var(--color-rosemary);
+  text-decoration: underline 1px var(--color-rosemary);
+  text-underline-offset: 0.28em;
+  transition:
+    color 200ms ease,
+    text-decoration-color 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .compose:hover {
+    color: var(--color-brass-ink);
+    text-decoration-color: var(--color-brass);
+  }
+}
+
+.sample {
+  font-style: italic;
+}
+
+/* On touch, each way in is a full 44px target without moving the type. */
+@media (pointer: coarse) {
+  .links a {
+    padding-block: 8px;
+  }
+
+  .links {
+    gap: 0 46px;
+  }
+}
+
+/* The one plain price line, directly under the two ways in. */
+.price {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--color-rosemary);
+}
+
+/* The HVNF credit: in the outer margin from 1280px (global .bk-margin-imprint), else a foot line. */
+@media (max-width: 1279px) {
+  .pageImprint {
+    padding: 0 var(--gx) 18px;
+  }
+}
+
+/* In the margin it is one short line at the page's foot, level with the price line. */
+@media (min-width: 1280px) {
+  .pageImprint {
+    /* At the book's outer edge, not the screen's: at 2560 the book is a centred 1488px. */
+    right: max(var(--gx), calc((100% - var(--book)) / 2));
+    max-width: none;
+    white-space: nowrap;
+  }
+}
+
+/*
+ * Phones and tablets (under 1024px): the two ways in and the price follow the plate's caption
+ * directly, so both links and the price are on the first screen; the margin notes come after them
+ * (side by side from 640px). The figure's boxes join the page's grid (display: contents) so they can
+ * be placed; reading order is unchanged and none of the notes is focusable, so Tab order is too.
+ */
+@media (max-width: 1023px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title" "subline" "arch" "caption" "links" "price" "left" "right";
+    justify-items: center;
+  }
+
+  .title {
+    grid-area: title;
+  }
+
+  .subline {
+    grid-area: subline;
+  }
+
+  .plate {
+    display: contents;
+  }
+
+  .arch {
+    margin-top: 44px;
+  }
+
+  .links {
+    grid-area: links;
+  }
+
+  .price {
+    grid-area: price;
+  }
+
+  .noteLeft {
+    margin-top: 40px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "title title" "subline subline" "arch arch" "caption caption" "links links" "price price" "left right";
+    column-gap: 40px;
+  }
+
+  .noteRight {
+    margin-top: 40px;
+  }
+
+  /* The birch twig reaches above the niche: keep clear stock under the subline. */
+  .arch {
+    margin-top: 56px;
+  }
+}
+
+@media (max-width: 639px) {
+  .title {
+    /* Three lines, not four, on a phone. */
+    margin-top: 16px;
+    font-size: clamp(2.5rem, 10.5vw, 3rem);
+  }
+
+  .subline {
+    font-size: 16px;
+  }
+
+  .arch {
+    --niche-w: min(54vw, 230px);
+  }
+
+  .links {
+    flex-direction: column;
+    align-items: center;
+  }
+}

@@ -1,0 +1,727 @@
+/* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
+
+/*
+ * IV · The ritual: one DOM, two ways to read it.
+ *
+ * STATIC is the default, for no JS, reduced motion, lite devices and screens under 641px tall: steps
+ * and plates interleave (a step, then its plate, on phones; side by side from 1024px) and every plate
+ * is its complete <img>. Numbers come from registered properties whose initial values are final.
+ *
+ * SCRUB (html.js, not lite, motion allowed): the steps scroll past a sticky stage. A view timeline on
+ * the steps (--rt) drives each plate: plate I draws as the stage arrives (0 to .09); plate i ≥ II is
+ * laid on top of the stack with a wipe at .2i + .06 and draws over the next .14. Plates outside their
+ * window are content-visibility: hidden, so a scroll frame restyles only what is on the stage.
+ * Browsers without scroll timelines get --p from ritual/ritual-progress.tsx and the same maths in calc().
+ *
+ * Only transform, clip-path, opacity and stroke-dashoffset change. Type uses longhands, so old-style figures survive.
+ */
+
+/* ------------------------------------------------------------ static layout */
+
+.rt {
+  display: grid;
+  row-gap: 3rem;
+  margin-top: clamp(3.5rem, 7vw, 6rem);
+}
+
+.steps,
+.stage {
+  display: contents;
+}
+
+/* Phones: a step, then its plate. */
+.steps > article {
+  grid-row: calc(var(--row) * 2 - 1);
+}
+
+.plate {
+  grid-row: calc(var(--row) * 2);
+}
+
+@media (min-width: 1024px) {
+  .rt {
+    grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+    column-gap: clamp(16px, 2.5vw, 40px);
+  }
+  .steps > article {
+    grid-column: 1;
+    grid-row: var(--row);
+    align-self: center;
+  }
+  .plate {
+    grid-column: 3;
+    grid-row: var(--row);
+  }
+  .gutter {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+  }
+}
+
+/* ------------------------------------------------------------ a step */
+
+.step {
+  min-width: 0;
+}
+
+.stepNumeral {
+  display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--color-brass-ink);
+}
+
+.place {
+  margin-top: 12px;
+}
+
+.stepTitle {
+  max-width: 15em;
+  margin-top: 6px;
+  font-size: clamp(2rem, 1.6rem + 1vw, 2.5rem);
+  line-height: 1.08;
+}
+
+.stepBody {
+  max-width: 34rem;
+  margin-top: 16px;
+}
+
+/* The technique's own name, after the plain account of it. */
+.technique {
+  margin-top: 12px;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-sage-ink);
+}
+
+/* The figures, as margin notes: inline under the step, then in the outer margin from 1280px. */
+.notes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 20px;
+  margin-top: 24px;
+}
+
+.notes :global(.bk-note) {
+  text-align: left;
+}
+
+.notes :global(.bk-note b) {
+  font-size: clamp(1.5rem, 1.25rem + 0.8vw, 1.875rem);
+}
+
+@media (min-width: 1280px) {
+  .step {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    column-gap: 2.25rem;
+    align-content: center;
+  }
+  .step > * {
+    grid-column: 2;
+  }
+  .step > .notes {
+    grid-column: 1;
+    grid-row: 1 / span 5;
+    align-self: center;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    margin-top: 0;
+  }
+  .notes :global(.bk-note) {
+    text-align: right;
+  }
+}
+
+/* ------------------------------------------------------------ a plate */
+
+.plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+}
+
+/* The paper the drawing is printed on. The plate files' occluders are parchment, so this must be too. */
+.draw {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 1;
+  container-type: inline-size;
+}
+
+.still,
+.live,
+.live > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.caption {
+  width: 100%;
+  max-width: 680px;
+  margin-top: 14px;
+  text-align: center;
+}
+
+.captionText {
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-moss);
+}
+
+.caption :global(.bk-imprint) {
+  margin-top: 4px;
+}
+
+/*
+ * Counters: HTML over the drawing, placed in the plate's own 400-unit grid (x / 4 %) and sized in cqi
+ * (the paper's width), counted by registered integers. --q is undefined in static mode, so each falls
+ * back to 1 and shows its final value; scrubbing, it follows the plate's progress.
+ */
+.counter {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+  color: var(--color-rosemary);
+  pointer-events: none;
+}
+
+/* Dawn: the harvest window's clock rides the time marker, 05:10 to 07:00. */
+.clock {
+  --rt-mins: calc(310 + var(--q, 1) * 110);
+  --rt-h: calc(var(--rt-mins) / 60 - 0.5);
+  --rt-m: calc(var(--rt-mins) - var(--rt-h) * 60);
+  counter-reset: h var(--rt-h) m var(--rt-m);
+  left: 94%;
+  top: 12.5%;
+  font-style: italic;
+  font-size: 3.6cqi;
+  translate: -50% 0;
+  transform: translateX(calc((var(--q, 1) - 1) * 88cqi));
+}
+
+.clock::after {
+  content: counter(h, decimal-leading-zero) ":" counter(m, decimal-leading-zero);
+}
+
+/* Steep: the cellar thermometer, +11 to −18 °C. */
+.temp {
+  --rt-temp: calc(11 - clamp(0, (var(--q, 1) - 0.1) / 0.45, 1) * 29);
+  counter-reset: t var(--rt-temp);
+  left: 84.5%;
+  top: 47.5%;
+  font-size: 6cqi;
+}
+
+.temp::after {
+  content: counter(t, aeth-signed) "°";
+}
+
+/* Steep: the day count, 0 to 180. */
+.day {
+  --rt-day: calc(clamp(0, (var(--q, 1) - 0.1) / 0.9, 1) * 180);
+  counter-reset: d var(--rt-day);
+  left: 86%;
+  top: 83.5%;
+  font-size: 9.5cqi;
+  translate: -50% 0;
+}
+
+.day::after {
+  content: counter(d);
+}
+
+/* Filtration: the flacon's volume, 0 to 50 ml (No. 019's size). */
+.ml {
+  --rt-ml: calc(clamp(0, (var(--q, 1) - 0.4) / 0.6, 1) * 50);
+  counter-reset: v var(--rt-ml);
+  left: 67%;
+  top: 81.5%;
+  font-style: italic;
+  font-size: 5cqi;
+}
+
+.ml::after {
+  content: counter(v) " ml";
+}
+
+/* ------------------------------------------------------------ scrub mode */
+
+@media (prefers-reduced-motion: no-preference) and (min-height: 641px) {
+  :global(html.js:not([data-lite])) .rt {
+    timeline-scope: --rt;
+  }
+
+  :global(html.js:not([data-lite])) .steps {
+    display: block;
+    view-timeline: --rt block;
+  }
+
+  :global(html.js:not([data-lite])) .steps > article {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+  }
+
+  :global(html.js:not([data-lite])) .stage {
+    display: block;
+    position: sticky;
+    align-self: start;
+    container-type: size;
+  }
+
+  /*
+   * Fallback maths, for browsers that get --p from ritual-progress.tsx (it writes --p on each plate).
+   * Plate i starts at s0 = .2i + .06 (plate I at 0): it is laid on top of the stack, a bottom-up
+   * clip-path wipe with a 16px rise over .05 of the chapter, and its ink draws over the next .14,
+   * so the drawing keeps moving for most of its step instead of finishing early and freezing.
+   * The plate is opaque kraft, so the one below is covered as the wipe passes: one caption at a time.
+   */
+  :global(html.js:not([data-lite])) .plate {
+    --s0: calc(var(--i) * 0.2 + 0.06);
+    --q: clamp(0, (var(--p) - var(--s0)) / 0.14, 1);
+    --w: clamp(0, (var(--p) - var(--s0)) / 0.05, 1);
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    background: var(--color-linen);
+    clip-path: inset(calc((1 - var(--w)) * 100%) 0 0 0);
+    translate: 0 calc((1 - var(--w)) * 16px);
+  }
+
+  /* Plate I is fully drawn by the time the stage pins: no blank sheet on entry. */
+  :global(html.js:not([data-lite])) .plate[data-first] {
+    --q: clamp(0, var(--p) / 0.09, 1);
+    clip-path: none;
+    translate: none;
+  }
+
+  /* The paper is as large as the stage allows, leaving room for the caption and its imprint (which
+     wraps to two lines on phones, hence the larger reserve below 1024px). */
+  :global(html.js:not([data-lite])) .draw {
+    width: min(100cqw, 100cqh - 108px);
+  }
+
+  /* Phones and tablets: the plate sticks to the top and the steps scroll up beneath it. */
+  :global(html.js:not([data-lite])) .steps,
+  :global(html.js:not([data-lite])) .stage {
+    grid-area: 1 / 1;
+  }
+
+  :global(html.js:not([data-lite])) .stage {
+    top: 0;
+    z-index: 1;
+    height: 46svh;
+    background: var(--color-linen);
+  }
+
+  :global(html.js:not([data-lite])) .steps {
+    padding-top: 46svh;
+  }
+
+  /* The text slides under the plate through a short fade of the page colour, not a hard edge. */
+  :global(html.js:not([data-lite])) .stage::after {
+    content: "";
+    position: absolute;
+    inset: 100% 0 auto;
+    height: 28px;
+    background: linear-gradient(var(--color-linen), rgb(199 169 130 / 0));
+    pointer-events: none;
+  }
+
+  /* From 1024px: the steps on the left page, the plate held on the right. */
+  @media (min-width: 1024px) {
+    :global(html.js:not([data-lite])) .steps {
+      grid-area: auto;
+      grid-column: 1;
+      grid-row: 1;
+      padding-top: 0;
+    }
+
+    :global(html.js:not([data-lite])) .stage {
+      grid-area: auto;
+      grid-column: 3;
+      grid-row: 1;
+      top: max(4svh, calc(50svh - min(38svh, 340px)));
+      z-index: auto;
+      height: min(76svh, 680px);
+      background: none;
+    }
+
+    :global(html.js:not([data-lite])) .draw {
+      width: min(100cqw, 100cqh - 76px);
+    }
+
+    :global(html.js:not([data-lite])) .stage::after {
+      content: none;
+    }
+
+    :global(html.js:not([data-lite])) .gutter {
+      grid-row: 1;
+    }
+  }
+
+  /*
+   * MUST stay inside @supports: an unsupported timeline turns these into 0s time animations.
+   * The stage still carries --p (not inherited, so only the stage itself restyles; tests read it).
+   * Each plate runs its own animations on the same --rt timeline: --q (the ink), the wipe, and a
+   * discrete content-visibility window, so only the one or two live plates restyle per scroll frame;
+   * the others are skipped entirely, counters and all.
+   */
+  @supports (animation-timeline: view()) {
+    :global(html.js:not([data-lite])) .stage {
+      animation: rt-p linear both;
+      animation-timeline: --rt;
+    }
+
+    :global(html.js:not([data-lite])) .plate {
+      --r0: calc(var(--i) * 20% + 6%);
+      content-visibility: hidden;
+      animation:
+        rt-q linear both,
+        rt-wipe linear both,
+        rt-on linear none;
+      animation-timeline: --rt, --rt, --rt;
+      animation-range:
+        cover var(--r0) cover calc(var(--r0) + 14%),
+        cover var(--r0) cover calc(var(--r0) + 5%),
+        cover var(--r0) cover calc(var(--r0) + 25%);
+    }
+
+    :global(html.js:not([data-lite])) .plate[data-first] {
+      animation:
+        rt-q linear both,
+        rt-on linear backwards;
+      animation-timeline: --rt, --rt;
+      animation-range:
+        cover 0% cover 9%,
+        cover 0% cover 31%;
+    }
+
+    :global(html.js:not([data-lite])) .plate[data-last] {
+      animation-fill-mode: both, both, forwards;
+      animation-range:
+        cover var(--r0) cover calc(var(--r0) + 14%),
+        cover var(--r0) cover calc(var(--r0) + 5%),
+        cover var(--r0) cover 100%;
+    }
+  }
+}
+
+@keyframes rt-q {
+  from {
+    --q: 0;
+  }
+  to {
+    --q: 1;
+  }
+}
+
+@keyframes rt-wipe {
+  from {
+    clip-path: inset(100% 0 0 0);
+    translate: 0 16px;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+}
+
+@keyframes rt-on {
+  from,
+  to {
+    content-visibility: visible;
+  }
+}
+
+@keyframes rt-p {
+  from {
+    --p: 0;
+  }
+  to {
+    --p: 1;
+  }
+}
+
+/* ------------------------------------------------------------ drawing math, inline plates only */
+
+/* Each part's own progress: where --q sits in its segment [--a, --b]. Without --q (static), 1: complete. */
+.live :global(.i),
+.live :global(.f),
+.live :global(.m) {
+  --s: clamp(0, (var(--q, 1) - var(--a)) / (var(--b) - var(--a)), 1);
+}
+
+.live :global(.i) {
+  stroke-dasharray: 1px 1px;
+  stroke-dashoffset: calc((1 - var(--s)) * 1px);
+}
+
+.live :global(.f) {
+  opacity: var(--s);
+}
+
+/* Labels and figures in the page's own faces once the plate is inline. */
+.live :global(.lb) {
+  font-family: var(--font-text);
+}
+
+.live :global(.fg) {
+  font-family: var(--font-display);
+}
+
+/* Dawn: the sun rises 62° about the arc's centre; the time marker crosses the window. */
+.live :global(.sun) {
+  transform-box: view-box;
+  transform-origin: 220px 280px;
+  transform: rotate(calc((var(--s) - 1) * 62deg));
+}
+
+.live :global(.mk) {
+  transform: translateX(calc((var(--s) - 1) * 352px));
+}
+
+/* Press: the upper plate comes down 92 units on a rod that lengthens, the handle turns twice, the
+   leaves flatten to 37% and the clock's hand sweeps 240°. */
+.live :global(.up) {
+  transform: translateY(calc((var(--s) - 1) * 92px));
+}
+
+.live :global(.rod) {
+  transform-box: view-box;
+  transform-origin: 200px 80px;
+  transform: scaleY(calc(0.1786 + 0.8214 * var(--s)));
+}
+
+.live :global(.hd) {
+  transform-box: view-box;
+  transform-origin: 200px 40px;
+  scale: cos(calc(var(--s) * 720deg)) 1;
+}
+
+.live :global(.lv) {
+  transform-box: view-box;
+  transform-origin: 0 250px;
+  transform: scaleY(calc(1 - 0.63 * var(--s)));
+}
+
+.live :global(.hn) {
+  transform-box: view-box;
+  transform-origin: 346px 50px;
+  transform: rotate(calc(var(--s) * 240deg));
+}
+
+/* Steep: the turns light up week by week, the liquid rises, the mercury falls from +11 to −18 °C. */
+.live :global(.tk) {
+  opacity: calc(0.18 + 0.82 * var(--s));
+}
+
+.live :global(.sl) {
+  transform-box: view-box;
+  transform-origin: 0 338px;
+  transform: scaleY(calc(0.02 + 0.98 * var(--s)));
+}
+
+.live :global(.ss) {
+  transform: translateY(calc((1 - var(--s)) * 184px));
+}
+
+.live :global(.hg) {
+  transform-box: view-box;
+  transform-origin: 0 306px;
+  transform: scaleY(calc(1 + (1 - var(--s)) * 1.1154));
+}
+
+/* Filtration: the flacon fills from the bottom and its surface rises with it. */
+.live :global(.fl) {
+  transform-box: view-box;
+  transform-origin: 0 372px;
+  transform: scaleY(var(--s));
+}
+
+.live :global(.fs) {
+  transform: translateY(calc((1 - var(--s)) * 80px));
+}
+
+/* ------------------------------------------------------------ coda: the finished flacon */
+
+/*
+ * The chapter ends on the spine with the bottle the four steps made. Hold it and the silk bulb
+ * squeezes (a transform, 120ms down, 260ms back) while ritual/mist.ts stipples gouache mist out of the
+ * nozzle on a canvas laid over the whole coda. The canvas is inert and transparent until pressed.
+ */
+.coda {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(var(--book), 100% - 2 * var(--gx));
+  margin: clamp(4rem, 9vw, 7.5rem) auto 0;
+}
+
+.mist {
+  position: absolute;
+  inset: -6% 0 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.mist > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.codaLabel {
+  text-align: center;
+}
+
+.spray {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  padding: 8px 12px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 160ms var(--ease-out);
+}
+
+.spray:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.spray:disabled {
+  cursor: default;
+}
+
+/*
+ * The coda is its own spread: the bottle stands about 45% of the screen tall on a brass baseline,
+ * named for what the reader composed, so the book's last interaction has a stage worthy of it.
+ */
+.sprayFigure {
+  position: relative;
+  display: block;
+  width: clamp(180px, calc(32svh * 300 / 440), 280px);
+  aspect-ratio: 300 / 440;
+}
+
+/* From 1024px the coda is its own spread; below, the button stays small enough to focus whole. */
+@media (min-width: 1024px) {
+  .sprayFigure {
+    width: clamp(240px, calc(64svh * 300 / 440), 440px);
+  }
+}
+
+/* The brass baseline the flacon stands on (the drawing's floor is at 384 of 440). */
+.sprayFigure::after {
+  content: "";
+  position: absolute;
+  left: -45%;
+  right: -45%;
+  top: calc(384 / 440 * 100%);
+  height: 1px;
+  background: var(--color-brass);
+}
+
+/* The composition's tincture, multiplied into the drawn liquid like a wash (book's tint sink). */
+.sprayTint {
+  fill: var(--spray-tint, transparent);
+  opacity: 0;
+  mix-blend-mode: multiply;
+  transition: opacity 600ms var(--ease-silk);
+}
+
+.sprayFigure[data-tinted] .sprayTint {
+  opacity: 0.4;
+}
+
+/* After the first spray: how the scent opens and closes, one quiet line under the bottle. */
+.sprayLine {
+  min-height: 1.5em;
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.5;
+  color: var(--color-rosemary);
+  opacity: 0;
+  translate: 0 6px;
+  transition:
+    opacity 700ms var(--ease-silk) 300ms,
+    translate 700ms var(--ease-silk) 300ms;
+}
+
+.sprayLine[data-show] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.sprayFigure img,
+.sprayParts {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sprayFigure img {
+  -webkit-user-drag: none;
+}
+
+/* The silk bulb: squeezed fast while held, let go a little slower, from its neck. */
+.bulb {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transition: transform 260ms var(--ease-out);
+}
+
+.spray[data-pressed] .bulb {
+  transform: scale(0.8, 0.9);
+  transition-duration: 120ms;
+}
+
+.sprayHint {
+  margin-top: 6px;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-moss);
+  text-decoration: underline 1px var(--color-hairline);
+  text-underline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .spray:not(:disabled):hover .sprayHint {
+    color: var(--color-rosemary);
+    text-decoration-color: var(--color-rosemary);
+  }
+}
+
+/* No script, or a reader who asked for less motion: the flacon is a drawing, with nothing to press. */
+:global(html:not(.js)) .sprayHint,
+.spray:disabled .sprayHint {
+  display: none;
+}

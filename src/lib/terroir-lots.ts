@@ -1,7 +1,7 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 /**
- * Harvest provenance for the three illustrative lots shown in Folio III.
+ * Harvest provenance for the three illustrative lots in chapter III, the pages turned by the lot pager.
  * Aetheria is fictional: every figure below is plausible but invented.
  * Place names and approximate coordinates are real geography.
  */
@@ -9,13 +9,15 @@
 export type PlateKind = "pine" | "vetiver" | "rose";
 
 export type TerroirLot = {
-  /** Two-digit lot number, shown as the huge serif numeral. */
+  /** Two-digit lot number, set on the lot's ribbon bookmark. */
   number: string;
   /** Batch code printed on the specimen label. */
   code: string;
   commonName: string;
   /** Compact name for narrow selectors. */
   shortName: string;
+  /** The ribbon bookmark's name, lowercase like every label in the book. */
+  ribbon: string;
   latinName: string;
   region: string;
   country: string;
@@ -28,6 +30,8 @@ export type TerroirLot = {
   habitat: string;
   harvestWindow: string;
   harvestHour: string;
+  /** The harvest facts as one plain sentence: when it was picked, and when and how it was received. */
+  harvestSentence: string;
   /** Cold vacuum distillation temperature in °C. */
   distillationC: number;
   soilPh: number;
@@ -52,6 +56,7 @@ export const TERROIR_LOTS: readonly TerroirLot[] = [
     code: "AE-019-01",
     commonName: "High-Altitude Maritime Pine",
     shortName: "Maritime Pine",
+    ribbon: "maritime pine",
     latinName: "Pinus pinaster",
     region: "Peloponnese",
     country: "Greece",
@@ -62,6 +67,8 @@ export const TERROIR_LOTS: readonly TerroirLot[] = [
     habitat: "Scattered stands on thin limestone scree, facing the Argolic Gulf. Sea air rises every afternoon and leaves salt on the needles.",
     harvestWindow: "Late June, one week",
     harvestHour: "05:40 – 08:10",
+    harvestSentence:
+      "Picked over one week in late June, between 05:40 and 08:10. Received in Grasse on 24 June 2026, entry VX-0624-PP.",
     distillationC: 34,
     soilPh: 5.6,
     solarHours: 2840,
@@ -77,6 +84,7 @@ export const TERROIR_LOTS: readonly TerroirLot[] = [
     code: "AE-019-02",
     commonName: "Wild Riverbed Vetiver",
     shortName: "Riverbed Vetiver",
+    ribbon: "riverbed vetiver",
     latinName: "Chrysopogon zizanioides",
     region: "Kyoto Prefecture",
     country: "Japan",
@@ -87,6 +95,8 @@ export const TERROIR_LOTS: readonly TerroirLot[] = [
     habitat: "A gravel bank under maple and cedar, flooded each spring. The roots grow long and pale, chasing water through the stones.",
     harvestWindow: "Mid October, after the rains",
     harvestHour: "07:00 – 11:30",
+    harvestSentence:
+      "Lifted in mid October, after the rains, between 07:00 and 11:30. Received in Grasse on 19 October 2026, entry VX-1019-KY.",
     distillationC: 29,
     soilPh: 6.7,
     solarHours: 1790,
@@ -102,6 +112,7 @@ export const TERROIR_LOTS: readonly TerroirLot[] = [
     code: "AE-019-03",
     commonName: "Highland Damask Rose",
     shortName: "Damask Rose",
+    ribbon: "damask rose",
     latinName: "Rosa × damascena",
     region: "Taif",
     country: "Saudi Arabia",
@@ -112,6 +123,8 @@ export const TERROIR_LOTS: readonly TerroirLot[] = [
     habitat: "Terraced granite slopes in the Sarawat range. Cold nights and dry days keep the petals small, thick and heavy with oil.",
     harvestWindow: "April, before first heat",
     harvestHour: "03:50 – 06:20",
+    harvestSentence:
+      "Picked in April, before the first heat, between 03:50 and 06:20. Received in Grasse on 12 April 2026, entry VX-0412-TF.",
     distillationC: 23,
     soilPh: 7.8,
     solarHours: 3320,

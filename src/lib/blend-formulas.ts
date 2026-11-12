@@ -47,7 +47,10 @@ export type Tier = {
   whisper: string;
   /** How much each point of intensity counts. Base notes are dense and carry further. */
   weight: number;
-  /** Palette tone used for this tier in the ratio bar. */
+  /**
+   * This tier's ink in the ratio bar and the strength rail: the book's trois crayons on kraft
+   * (brass for the top, sanguine for the heart, sepia for the base). Same hex as lib/palette.ts.
+   */
   tone: `#${string}`;
   notes: readonly Note[];
 };
@@ -67,7 +70,7 @@ export const TIERS: readonly Tier[] = [
     role: "The first impression",
     whisper: "Bright and fleeting. Gone within the hour.",
     weight: 0.85,
-    tone: "#7d8a74",
+    tone: "#7b5a26",
     notes: [
       {
         id: "bergamot",
@@ -86,7 +89,7 @@ export const TIERS: readonly Tier[] = [
         tier: "top",
         name: "Wild Yuzu",
         short: "Yuzu",
-        origin: "Kōchi, Shikoku",
+        origin: "Shikoku, Japan",
         descriptor: "Knotted mountain fruit, sharp as frost on a windowpane.",
         tincture: "#d9b23c",
         vector: [1, 0.25, 0.05, 0, 0.05, 0.3],
@@ -114,7 +117,7 @@ export const TIERS: readonly Tier[] = [
     role: "The character",
     whisper: "Rises once the brightness fades, and stays the afternoon.",
     weight: 1,
-    tone: "#b8583d",
+    tone: "#8a3320",
     notes: [
       {
         id: "vetiver",
@@ -161,7 +164,7 @@ export const TIERS: readonly Tier[] = [
     role: "What lingers",
     whisper: "The quiet foundation, still on the skin the next morning.",
     weight: 1.2,
-    tone: "#2f4034",
+    tone: "#35271a",
     notes: [
       {
         id: "moss",
@@ -230,7 +233,7 @@ export const HOUSE_PRESETS: readonly HousePreset[] = [
   { id: "orchard", name: "Morning orchard", selection: { top: { noteId: "bergamot", intensity: 80 }, heart: { noteId: "rose", intensity: 55 }, base: { noteId: "moss", intensity: 30 } } },
   { id: "hearth", name: "Hearth and resin", selection: { top: { noteId: "pine", intensity: 35 }, heart: { noteId: "cedar", intensity: 75 }, base: { noteId: "amber", intensity: 85 } } },
   { id: "garden", name: "Night garden", selection: { top: { noteId: "yuzu", intensity: 30 }, heart: { noteId: "rose", intensity: 90 }, base: { noteId: "labdanum", intensity: 60 } } },
-  { id: "house", name: "The house blend", selection: DEFAULT_SELECTION },
+  { id: "house", name: "Our daily blend", selection: DEFAULT_SELECTION },
 ];
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));

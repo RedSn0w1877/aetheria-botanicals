@@ -1,15 +1,15 @@
-"use client";
-
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 import { memo } from "react";
-import { motion, useReducedMotion } from "motion/react";
 import type { GlyphId, Vessel } from "@/lib/blend-formulas";
-import { EASE_SILK } from "@/lib/motion";
+import s from "./compose.module.css";
 
 /**
- * Hand-authored line drawings, one per note, on a 48×48 grid.
- * Each glyph is a list of single-stroke paths so they can be "inked" in with pathLength.
+ * Hand-authored line drawings, one per note, on a 48×48 grid. Each glyph is a list of single-stroke
+ * paths, so it can ink itself in: every path is class="ink" with pathLength="1", and the stroke is
+ * drawn by the global ink mechanism (globals.css + book/ink-observer.tsx) once its [data-ink]
+ * container is 30% visible. The drawing ships complete, so no-JS, lite and reduced motion see it whole.
+ * The strokes scale with the drawing on purpose: fixed-width strokes would break the pathLength dashes.
  */
 const GLYPHS: Record<GlyphId, readonly string[]> = {
   bergamot: [
@@ -69,7 +69,7 @@ const GLYPHS: Record<GlyphId, readonly string[]> = {
   ],
 };
 
-const VESSELS: Record<Vessel, readonly string[]> = {
+const VESSEL_GLYPHS: Record<Vessel, readonly string[]> = {
   "Oak cask": [
     "M14 10c-2.4 4-3.4 9-3.4 14s1 10 3.4 14h20c2.4-4 3.4-9 3.4-14s-1-10-3.4-14H14Z",
     "M11.6 17h24.8M11.6 31h24.8",
@@ -88,90 +88,39 @@ const VESSELS: Record<Vessel, readonly string[]> = {
   ],
 };
 
-type GlyphProps = {
+function LineDrawing({
+  paths,
+  className,
+  ink = false,
+}: {
   paths: readonly string[];
   className?: string;
-  /** Draw the lines in once when scrolled into view. Decorative only. */
+  /** Mark the paths for the ink-in. The caller wraps the drawing in a [data-ink] container. */
   ink?: boolean;
-  strokeWidth?: number;
-  title?: string;
-};
-
-function LineDrawing({ paths, className, ink = true, strokeWidth = 1.1, title }: GlyphProps) {
-  const reduce = useReducedMotion();
-  const animateInk = ink && !reduce;
+}) {
+  // The pen (fill, stroke, caps, width) and each stroke's ink timing live in compose.module.css
+  // (.line), so the nine server-rendered specimens don't repeat them in the HTML.
   return (
-    <svg
-      viewBox="0 0 48 48"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden={title ? undefined : true}
-      role={title ? "img" : undefined}
-    >
-      {title ? <title>{title}</title> : null}
-      {paths.map((d, i) => (
-        <motion.path
-          key={d}
-          d={d}
-          vectorEffect="non-scaling-stroke"
-          initial={animateInk ? { pathLength: 0, opacity: 0.2 } : false}
-          whileInView={animateInk ? { pathLength: 1, opacity: 1 } : undefined}
-          viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-          transition={{ duration: 1.8, ease: EASE_SILK, delay: 0.15 + i * 0.22 }}
-        />
-      ))}
+    <svg viewBox="0 0 48 48" className={className ? `${s.line} ${className}` : s.line} aria-hidden="true">
+      {paths.map((d, i) => (ink ? <path key={i} className="ink" pathLength={1} d={d} /> : <path key={i} d={d} />))}
     </svg>
   );
 }
 
-export const BotanicalGlyph = memo(function BotanicalGlyph({ id, className, ink, strokeWidth }: { id: GlyphId; className?: string; ink?: boolean; strokeWidth?: number }) {
-  return <LineDrawing paths={GLYPHS[id]} className={className} ink={ink} strokeWidth={strokeWidth} />;
+/** A note's specimen drawing. Inked in by default; it paints in currentColor. */
+export const BotanicalGlyph = memo(function BotanicalGlyph({
+  id,
+  className,
+  ink = true,
+}: {
+  id: GlyphId;
+  className?: string;
+  ink?: boolean;
+}) {
+  return <LineDrawing paths={GLYPHS[id]} className={className} ink={ink} />;
 });
 
+/** The resting vessel. Never inked: when the cure changes vessel it simply swaps. */
 export const VesselGlyph = memo(function VesselGlyph({ vessel, className }: { vessel: Vessel; className?: string }) {
-  return <LineDrawing paths={VESSELS[vessel]} className={className} ink={false} strokeWidth={1.1} />;
+  return <LineDrawing paths={VESSEL_GLYPHS[vessel]} className={className} />;
 });
-
-/**
- * Large, faint herbarium sprigs that drift behind the section (GSAP parallax targets).
- * Viewbox 0 0 120 320.
- */
-export function HerbariumSprig({ variant, className }: { variant: "fern" | "stem"; className?: string }) {
-  const fern = [
-    "M60 316C58 240 62 150 70 8",
-    ...Array.from({ length: 11 }, (_, i) => {
-      const y = 280 - i * 24;
-      const x = 59 + i * 0.9;
-      const reach = 44 - i * 3.2;
-      return `M${x} ${y}c-${reach * 0.5} -6 -${reach} -16 -${reach} -30M${x} ${y}c${reach * 0.5} -8 ${reach} -20 ${reach * 1.02} -34`;
-    }),
-  ];
-  const stem = [
-    "M40 318c10-70 4-130 20-200s28-90 30-112",
-    "M52 200c-18-6-30-20-32-40 18 2 30 16 32 40Z",
-    "M58 146c16-10 34-10 46 2-14 10-32 10-46-2Z",
-    "M48 250c-16 0-28-10-32-26 16-2 28 8 32 26Z",
-    "M90 6c-10 4-16 12-16 22 10-2 16-10 16-22Z",
-    "M76 72c-6-4-8-12-6-18 6 4 8 10 6 18Z",
-  ];
-  return (
-    <svg
-      viewBox="0 0 120 320"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={0.9}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      {(variant === "fern" ? fern : stem).map((d) => (
-        <path key={d} d={d} vectorEffect="non-scaling-stroke" />
-      ))}
-    </svg>
-  );
-}

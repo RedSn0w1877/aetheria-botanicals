@@ -1,93 +1,245 @@
 /* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
 
-@import "tailwindcss";
+/*
+ * Tailwind for its preflight and the @theme tokens only. source(none): no file is scanned, so no
+ * utility classes (and none of their --tw-* @property rules) are generated from words that happen to
+ * appear in comments. Nothing in the book uses a utility class; chapters style with CSS modules.
+ */
+@import "tailwindcss" source(none);
 
 /*
- * Palette — sun-bleached linen, rosemary ink, terracotta clay, brushed brass.
- * Utilities: bg-linen, text-rosemary, border-hairline, text-brass, bg-herb, etc.
+ * Palette: "trois crayons" on toned paper, the way old botanical studies were drawn. A kraft/bistre
+ * stock, sepia-black ink, sanguine (red chalk) for the one accent, brass for rules, and white gouache
+ * heightening on drawings only. The token names are the original ones (linen is the stock, rosemary
+ * the ink, terracotta the sanguine) so no chapter had to change; src/lib/palette.ts holds the same
+ * values as hex for the plate generators and the encoder. Contrast is on the stock unless noted.
+ * `static` emits every token on :root even when no utility uses it, because CSS modules,
+ * inline styles and the plate generators read them with var().
  */
-@theme {
-  --color-linen: #f5f2eb;
-  --color-parchment: #f9f7f2;
-  --color-herb: #eae5d8;
-  --color-hairline: #dcd6c8;
-  --color-rosemary: #18231c;
-  --color-moss: #2f4034;
-  --color-sage: #7d8a74;
-  --color-terracotta: #b8583d;
-  --color-brass: #a88243;
-  --color-violet-glass: #3d2c4f;
-
-  --animate-breathe: breathe 7s ease-in-out infinite;
+@theme static {
+  --color-linen: #c7a982; /* the page: toned kraft stock */
+  --color-parchment: #dbc5a0; /* a lighter sheet laid on it: plates, the letter, the niche */
+  --color-herb: #bc9f77; /* deeper kraft: tabs, tape, inset bars */
+  --color-hairline: #977a54;
+  --color-rosemary: #1e150d; /* sepia-black ink 8.07:1; the night ground */
+  --color-moss: #35271a; /* secondary ink 6.47:1 (5.74 on herb) */
+  --color-sage: #6b583d; /* drawing lines ONLY (3.05:1) */
+  --color-sage-ink: #45341f; /* captions and imprints 5.34:1 (4.74 on herb) */
+  --color-terracotta: #8a3320; /* sanguine: the seal, the current tab, type 24px or larger only (3.66:1) */
+  --color-brass: #7b5a26; /* rules, fleurons, graduations */
+  --color-brass-ink: #48310d; /* links and letter blanks 5.48:1 (4.86 on herb) */
+  --color-night-dim: #c2ae8a; /* secondary text on the night ground 8.32:1 */
+  --color-brass-light: #c9a462; /* numerals, labels and focus on the night ground 7.68:1 */
+  --color-gouache: #fbf5e6; /* white heightening: drawings and glass ONLY, never text */
+  --ease-silk: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-leaf: cubic-bezier(0.45, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* UI responses: tabs, presses, the corner link */
 }
 
-@theme inline {
-  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
-  --font-sans: var(--font-jost), "Jost", ui-sans-serif, system-ui, sans-serif;
+/*
+ * Display is Cormorant 300 (roman + italic), text is Newsreader 400 (roman + italic), self-hosted through
+ * next/font/local (app/layout.tsx). The faces are named "Cormorant Garamond" and "Newsreader" by their
+ * `declarations`, so roman and italic share one family; the size-matched Times fallbacks next/font
+ * generates keep its own names ("display Fallback", "text Fallback"), so they are listed here by name.
+ * The --nf-* variables on <html> are not used: they name next/font's internal family, not the faces.
+ */
+@theme inline static {
+  --font-display: "Cormorant Garamond", "display Fallback", Georgia, serif;
+  --font-text: "Newsreader", "text Fallback", Georgia, serif;
 }
 
-@keyframes ticker {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
+/*
+ * Scroll-driven ritual progress and its live counters (chapter IV). Initial values are the finished state.
+ * --p is the chapter's progress; it does not inherit, so animating it on the stage restyles only the
+ * stage. --q is one plate's ink progress; it inherits into that plate's paths and counters.
+ */
+@property --p {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --q {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --rt-mins {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 420;
+}
+@property --rt-h {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 7;
+}
+@property --rt-m {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --rt-day {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 180;
+}
+@property --rt-temp {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: -18;
+}
+@property --rt-ml {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 50;
 }
 
-@keyframes breathe {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.04);
+/* counter(t, aeth-signed): a true minus sign for sub-zero temperatures. */
+@counter-style aeth-signed {
+  system: extends decimal;
+  negative: "\2212";
+}
+
+/* Book measures. --gx is the page gutter; --book the spread width (wider, with symmetric margins, at 2200px+). */
+:root {
+  --gx: clamp(16px, 4vw, 64px);
+  --book: 1240px;
+}
+@media (min-width: 2200px) {
+  :root {
+    --book: 1488px;
   }
 }
 
 @layer base {
   html {
     background: var(--color-linen);
+    color: var(--color-rosemary);
     color-scheme: light;
+    font-family: var(--font-text);
+    font-synthesis: none;
+    font-variant-numeric: oldstyle-nums;
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-top: 16px;
+    /* Below 1024px the docked Contents button sits bottom-left: focus scrolling clears it (44 + 16 + 16). */
+    scroll-padding-bottom: 76px;
+    /* The parts the browser draws carry the book too: sanguine caret and controls, a kraft scrollbar. */
+    caret-color: var(--color-terracotta);
+    accent-color: var(--color-terracotta);
+    scrollbar-color: var(--color-hairline) var(--color-linen);
   }
 
-  /* Lenis owns scrolling. Native smooth scrolling only applies when Lenis is off (reduced motion). */
-  html:not(.lenis) {
-    scroll-behavior: smooth;
+  @media (min-width: 1024px) {
+    html {
+      scroll-padding-bottom: 0;
+    }
   }
-  html.lenis,
-  html.lenis body {
-    height: auto;
+
+  /*
+   * Chapters II to VI are laid out only when they come near the screen, so a phone's first layout
+   * is the title page, not the whole 16,000px book. The placeholder heights are each chapter's
+   * measured height per breakpoint (the ritual's grows with the screen), and `auto` keeps the real
+   * one once it has been laid out, so the scrollbar and anchor jumps stay steady. Nothing in these
+   * chapters overhangs its section, so the paint containment this brings clips nothing.
+   */
+  #compose,
+  #provenance,
+  #ritual,
+  #commission,
+  #colophon {
+    content-visibility: auto;
   }
-  .lenis.lenis-smooth {
-    scroll-behavior: auto !important;
+  #compose {
+    contain-intrinsic-block-size: auto 3670px;
   }
-  .lenis.lenis-smooth [data-lenis-prevent] {
-    overscroll-behavior: contain;
+  #provenance {
+    contain-intrinsic-block-size: auto 4280px;
   }
-  .lenis:not(.lenis-autoToggle).lenis-stopped {
-    overflow: clip;
+  #ritual {
+    contain-intrinsic-block-size: auto calc(446svh + 970px);
   }
-  .lenis.lenis-autoToggle {
-    transition-property: overflow;
-    transition-duration: 1ms;
-    transition-behavior: allow-discrete;
+  #commission {
+    contain-intrinsic-block-size: auto 1300px;
+  }
+  #colophon {
+    contain-intrinsic-block-size: auto 612px;
+  }
+  @media (min-width: 640px) {
+    #compose {
+      contain-intrinsic-block-size: auto 3067px;
+    }
+    #provenance {
+      contain-intrinsic-block-size: auto 3269px;
+    }
+    #ritual {
+      contain-intrinsic-block-size: auto calc(446svh + 880px);
+    }
+    #commission {
+      contain-intrinsic-block-size: auto 1120px;
+    }
+    #colophon {
+      contain-intrinsic-block-size: auto 560px;
+    }
+  }
+  @media (min-width: 1024px) {
+    #compose {
+      contain-intrinsic-block-size: auto 2300px;
+    }
+    #provenance {
+      contain-intrinsic-block-size: auto 2700px;
+    }
+    #ritual {
+      contain-intrinsic-block-size: auto calc(400svh + 1200px);
+    }
+    #commission {
+      contain-intrinsic-block-size: auto 960px;
+    }
+    #colophon {
+      contain-intrinsic-block-size: auto 640px;
+    }
+  }
+
+  /* Native smooth scrolling for anchor jumps. No scroll library anywhere. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* While the Contents <dialog> is open the page behind it does not scroll. */
+  html:has(dialog[open]) {
+    overflow: hidden;
   }
 
   body {
-    position: relative;
-    min-height: 100vh;
-    background: var(--color-linen);
-    color: var(--color-rosemary);
-    font-feature-settings: "kern", "liga", "onum";
+    min-height: 100svh;
+    font-size: 18px;
+    line-height: calc(30 / 18);
   }
 
-  section[id] {
-    scroll-margin-top: 4.5rem;
+  /*
+   * A book never scrolls sideways. Anything a chapter translates past its column (slider tracks,
+   * ratio seams, instrument markers) is clipped at the page edge, so a phone never zooms out to fit
+   * it. `clip`, not `hidden`: it makes no scroll container, so position: sticky inside still works.
+   */
+  main {
+    overflow-x: clip;
+  }
+  @media (min-width: 1280px) {
+    body {
+      font-size: 19px;
+      line-height: calc(30 / 19);
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    line-height: 1.1;
+    text-wrap: balance;
   }
 
   ::selection {
@@ -96,28 +248,17 @@
   }
 
   :focus-visible {
-    outline: 1px solid var(--color-brass);
-    outline-offset: 4px;
-  }
-
-  /*
-   * Paper fibre. A still, fine noise laid over everything with multiply blending,
-   * so the linen reads as printed stock rather than a flat hex value.
-   */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 60;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.11 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-    opacity: 0.09;
-    mix-blend-mode: multiply;
-    pointer-events: none;
+    outline: 2px solid var(--color-brass-ink);
+    outline-offset: 3px;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto !important; }
-    *, *::before, *::after {
+    html {
+      scroll-behavior: auto !important;
+    }
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -133,9 +274,321 @@
       transform: translate(-50%, -50%) rotate(-28deg);
       font: italic 30px/1 Georgia, serif;
       letter-spacing: 0.18em;
-      color: rgb(24 35 28 / 0.28);
+      color: rgb(30 21 13 / 0.3);
       white-space: nowrap;
       pointer-events: none;
     }
+    [data-print="hide"] {
+      display: none !important;
+    }
   }
+}
+
+@keyframes aeth-ink {
+  from {
+    stroke-dashoffset: 1px;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * Shared book classes. Global on purpose, so client islands and every chapter's CSS module can use
+ * them. In a layer, so a module (unlayered) can always override them.
+ */
+@layer components {
+  /*
+   * Ink-in. Anything that draws marks its container [data-ink] and its paths class="ink" pathLength="1",
+   * with optional inline --d (delay, s) and --t (duration, s). Shipped complete; book/ink-observer.tsx
+   * rewinds only what is out of view at hydration ([data-inked=wait]) and draws it when 30% visible
+   * ([data-inked=draw]). Anything that mounts later stays complete unless it opts into [data-ink-now],
+   * a CSS-only draw from the moment it appears (the frontispiece stems use it from first paint).
+   * No-JS, reduced motion and lite always see finished drawings. Never put vector-effect on an .ink path.
+   */
+  .ink {
+    stroke-dasharray: 1px 1px;
+    stroke-dashoffset: 0;
+  }
+  [data-inked="instant"] .ink {
+    transition: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html.js.ink-ready:not([data-lite]) [data-ink][data-inked="wait"] .ink {
+      stroke-dashoffset: 1px;
+    }
+    html.js:not([data-lite]) [data-ink][data-inked="draw"] .ink {
+      transition: stroke-dashoffset var(--t, 1.6s) var(--ease-leaf) var(--d, 0s);
+    }
+    html.js:not([data-lite]) [data-ink-now] .ink {
+      animation: aeth-ink var(--t, 1.2s) var(--ease-leaf) var(--d, 0s) both;
+    }
+  }
+
+  .bk-book {
+    width: min(var(--book), 100% - 2 * var(--gx));
+    margin-inline: auto;
+  }
+  .bk-measure {
+    max-width: 42rem;
+    margin-inline: auto;
+  }
+  .bk-chapter {
+    padding-block: clamp(4.5rem, 9vw, 9rem);
+  }
+  .bk-night {
+    background: var(--color-rosemary);
+    color: var(--color-linen);
+  }
+
+  /* Two-page spread: left page, gutter, right page. Single column below 1024px. */
+  .bk-spread {
+    display: grid;
+    gap: clamp(3rem, 6vw, 5rem);
+  }
+  .bk-gutter {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .bk-spread {
+      grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+      column-gap: clamp(16px, 2.5vw, 40px);
+    }
+    /* The fold: a 1px herb line over a soft 48px shadow. Static: no blend mode, no filter. */
+    .bk-gutter {
+      display: block;
+      align-self: stretch;
+      background:
+        linear-gradient(var(--color-herb), var(--color-herb)) 50% 0 / 1px 100% no-repeat,
+        linear-gradient(90deg, transparent, rgb(30 21 13 / 0.07) 50%, transparent);
+    }
+    .bk-night .bk-gutter {
+      background:
+        linear-gradient(var(--color-moss), var(--color-moss)) 50% 0 / 1px 100% no-repeat,
+        linear-gradient(90deg, transparent, rgb(0 0 0 / 0.22) 50%, transparent);
+    }
+  }
+
+  /* A sheet laid on the linen: plates, the letter, the reply card. */
+  .bk-paper {
+    background: var(--color-parchment);
+    box-shadow:
+      0 1px 0 rgb(30 21 13 / 0.08),
+      0 22px 44px -28px rgb(30 21 13 / 0.42);
+  }
+
+  /* Labels are authored in lowercase; nothing here transforms case. Longhands keep the old-style figures. */
+  .bk-label {
+    font-family: var(--font-text);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--color-sage-ink);
+  }
+  .bk-imprint {
+    font-family: var(--font-text);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--color-sage-ink);
+  }
+
+  /* A margin note: an optional figure in <b>, then a small italic line. */
+  .bk-note {
+    max-width: 15.5rem;
+    font-family: var(--font-text);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-moss);
+  }
+  .bk-note b {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 300;
+    font-size: 1.875rem;
+    line-height: 1.1;
+    color: var(--color-rosemary);
+  }
+  @media (min-width: 640px) {
+    .bk-note[data-side="left"] {
+      text-align: right;
+    }
+    .bk-note[data-side="right"] {
+      text-align: left;
+    }
+  }
+  /* A signed note (MarginNote's `signed`): the maker's name, set like a signature under the note. */
+  .bk-note-sign {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.375rem;
+    line-height: 1.15;
+    color: var(--color-rosemary);
+  }
+  .bk-note-sign small {
+    display: block;
+    font-family: var(--font-text);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--color-sage-ink);
+  }
+
+  /*
+   * The one plain price line (book/price-line.tsx): size and price for No. 019 and the sample set,
+   * set as a sentence in the running italic, never as a price card. Lining figures so prices align.
+   */
+  .bk-price {
+    font-family: var(--font-text);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-moss);
+    font-variant-numeric: lining-nums proportional-nums;
+    text-wrap: balance;
+  }
+  .bk-price-item {
+    display: inline-block;
+  }
+  .bk-price-sep {
+    margin-inline: 0.6em;
+    color: var(--color-brass);
+  }
+
+  /*
+   * The printer's imprint in a page's margin (PageImprint): where the HVNF credit sits on the title
+   * page instead of under the plate. From 1280px (where the margins are wide enough to clear the
+   * links) it is set small at the foot of the page's outer margin (the section must be
+   * position: relative); below that it is a centred line at the foot.
+   * Horizontal, never a vertical rail.
+   */
+  .bk-margin-imprint {
+    margin: 0;
+    font-family: var(--font-text);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--color-sage-ink);
+    text-align: center;
+  }
+  @media (min-width: 1280px) {
+    .bk-margin-imprint {
+      position: absolute;
+      right: var(--gx);
+      bottom: 22px;
+      max-width: 12rem;
+      text-align: right;
+    }
+  }
+
+  .bk-link {
+    color: var(--color-brass-ink);
+    text-decoration: underline 1px var(--color-brass);
+    text-underline-offset: 0.28em;
+    transition:
+      color 200ms ease,
+      text-decoration-color 200ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .bk-link:hover {
+      color: var(--color-rosemary);
+      text-decoration-color: var(--color-rosemary);
+    }
+  }
+
+  .bk-tabular {
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  /* The floral-heart ornament (book/fleuron.tsx). It paints in currentColor. */
+  .bk-fleuron {
+    display: inline-block;
+    flex: none;
+    width: 24px;
+    height: 16px;
+    color: var(--color-brass);
+    vertical-align: middle;
+  }
+
+  /* Night chapter: secondary type moves to night-dim, links and numerals to light brass. */
+  .bk-night .bk-label,
+  .bk-night .bk-imprint,
+  .bk-night .bk-margin-imprint,
+  .bk-night .bk-note,
+  .bk-night .bk-price,
+  .bk-night .bk-note-sign small {
+    color: var(--color-night-dim);
+  }
+  .bk-night .bk-note b,
+  .bk-night .bk-note-sign {
+    color: var(--color-linen);
+  }
+  .bk-night .bk-link {
+    color: var(--color-brass-light);
+    text-decoration-color: var(--color-brass-light);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .bk-night .bk-link:hover {
+      color: var(--color-linen);
+      text-decoration-color: var(--color-linen);
+    }
+  }
+  .bk-night :focus-visible {
+    outline-color: var(--color-brass-light);
+  }
+
+  /* Visually hidden, still read aloud. */
+  .bk-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* "Skip to the book": hidden until a keyboard reaches it, then a small rosemary tab at the top left. */
+  .bk-skip:not(:focus) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .bk-skip:focus {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 60;
+    padding: 10px 16px;
+    background: var(--color-rosemary);
+    color: var(--color-linen);
+    font-family: var(--font-text);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+}
+
+/* Unlayered, so it beats .bk-chapter: the sealed letter hands straight on to the colophon, with no
+   field of empty kraft between them. */
+#commission {
+  padding-bottom: clamp(2rem, 3.5vw, 3.5rem);
 }

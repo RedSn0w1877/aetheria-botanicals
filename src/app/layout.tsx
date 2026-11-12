@@ -1,36 +1,17 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
-import { Toaster } from "sonner";
 import "./globals.css";
-import { LenisProvider } from "@/components/providers/lenis-provider";
-import { AttributionSentinel } from "@/components/brand/attribution-sentinel";
-import { MarginWatermark } from "@/components/brand/margin-watermark";
+import { BookDocument } from "@/components/book/book-document";
 import { COPYRIGHT_LINE, STUDIO } from "@/lib/copyright";
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-const jost = Jost({
-  variable: "--font-jost",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
-    default: "Aetheria Botanicals — Slow-extracted botanical perfume",
+    default: "Aetheria Botanicals — perfume from wild plants, steeped cold for 180 days",
     template: "%s — Aetheria Botanicals",
   },
   description:
-    "Small-batch botanical perfume, made from wild plants left to steep in the cold for 180 days. A portfolio concept by HVNF Studios.",
+    "Small-batch perfume made from wild plants, steeped in the cold for 180 days in Grasse. A portfolio concept by HVNF Studios.",
   applicationName: "Aetheria Botanicals",
   authors: [{ name: STUDIO }],
   creator: STUDIO,
@@ -44,35 +25,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f5f2eb",
+  themeColor: "#c7a982",
   colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
-    <html lang="en" className={`${cormorant.variable} ${jost.variable}`}>
-      <body className="bg-linen font-sans text-rosemary">
-        {/*
-          React hoists this into <head>. It's a raw <link>, which Next's basePath doesn't
-          rewrite, so the GitHub Pages project path is written out by hand.
-        */}
-        <link rel="license" href="/aetheria-botanicals/legal/terms" />
-        <LenisProvider>{children}</LenisProvider>
-        <MarginWatermark />
-        <AttributionSentinel />
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            style: {
-              background: "#f9f7f2",
-              border: "1px solid #dcd6c8",
-              color: "#18231c",
-              borderRadius: 0,
-              fontFamily: "var(--font-jost)",
-            },
-          }}
-        />
-      </body>
-    </html>
-  );
+  return <BookDocument>{children}</BookDocument>;
 }

@@ -1,0 +1,550 @@
+/* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
+
+/*
+ * Chapter V, the commission letter: a parchment sheet with inline blanks, the margin note on its left
+ * and the brass tag on its right; the wax seal straddles the sheet's foot. Type uses longhands so the
+ * old-style figures survive. What moves, once and only on request: the seal press (380ms), the tag's
+ * letter press (300ms) and the reply's vessel inking in.
+ */
+
+.desk {
+  --pad: clamp(28px, 5vw, 72px);
+  /* A deep sanguine for errors: sanguine cut with the sepia ink, 4.84:1 on the stock, 6.42 on the sheet. */
+  --ink-error: color-mix(in srgb, var(--color-terracotta) 70%, var(--color-rosemary));
+  display: grid;
+  justify-items: center;
+  row-gap: 40px;
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+.note {
+  max-width: 20rem;
+  text-align: center;
+}
+
+.letterColumn {
+  width: min(680px, 100%);
+  min-width: 0;
+}
+
+.tagSlot {
+  width: min(200px, 100%);
+}
+
+/* At 1024px and up: note, letter, tag across the page, centred on the spine. */
+@media (min-width: 1024px) {
+  .desk {
+    grid-template-columns: clamp(150px, 16vw, 220px) minmax(0, 680px) clamp(150px, 16vw, 220px);
+    justify-content: center;
+    justify-items: stretch;
+    align-items: start;
+    column-gap: clamp(24px, 3vw, 48px);
+  }
+
+  .note {
+    max-width: none;
+    margin-top: 128px;
+    text-align: right;
+  }
+
+  .letterColumn {
+    width: auto;
+  }
+
+  .tagSlot {
+    margin-top: 84px;
+    justify-self: start;
+  }
+}
+
+/* ----------------------------------------------------------------- the sheet */
+
+.sheet {
+  padding: var(--pad) var(--pad) calc(var(--pad) + 8px);
+  font-size: 19px;
+  line-height: 38px;
+  color: var(--color-rosemary);
+}
+
+.sheet p + p {
+  margin-top: 14px;
+}
+
+.sheet .thanks {
+  margin-top: 26px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 26px;
+  line-height: 1.3;
+}
+
+/* The blanks: inline inputs that grow with what is written in them. */
+.blank {
+  field-sizing: content;
+  min-width: 8ch;
+  max-width: 100%;
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 1px dotted var(--color-brass-ink);
+  border-radius: 0;
+  background: transparent;
+  /* 44px to tap; the negative margin gives the extra back so the line keeps its height. */
+  position: relative;
+  z-index: 1;
+  padding-block: 22px 2px;
+  margin-block: -16px 0;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-brass-ink);
+  vertical-align: baseline;
+}
+
+.blank::placeholder {
+  /* sage-ink thinned with the sheet: 5.06:1, quieter than a written blank (brass-ink, 7.27:1). */
+  color: color-mix(in srgb, var(--color-sage-ink) 85%, var(--color-parchment));
+  opacity: 1;
+}
+
+.blank[aria-invalid="true"] {
+  border-bottom: 1px solid var(--ink-error);
+}
+
+.blankInitials {
+  letter-spacing: 0.12em;
+}
+
+/* Firefox has no field-sizing yet: fixed widths instead. */
+@supports not (field-sizing: content) {
+  .blank {
+    width: 12ch;
+  }
+
+  .blankEmail {
+    width: 16ch;
+  }
+}
+
+.composition {
+  padding: 0 2px;
+  border-bottom: 1px dotted var(--color-brass-ink);
+  font-style: italic;
+  color: var(--color-brass-ink);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.change {
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-sage-ink);
+  white-space: nowrap;
+}
+
+/* Inline links and blanks keep their line; block padding only grows what a thumb can hit. */
+.change a {
+  display: inline-block;
+  padding-block: 13px;
+  margin-block: -13px;
+}
+
+/* The size: an inline radio group. The chosen size is brass-ink and underlined. */
+.sizes {
+  white-space: nowrap;
+}
+
+.size {
+  position: relative;
+  display: inline-block;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-style: italic;
+  color: var(--color-sage-ink);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+
+/* Every pressable answers the press. */
+.size:active {
+  transform: scale(0.97);
+}
+
+/* The radio draws nothing but covers its label, so focus scrolls the whole size into view, ringed. */
+.size > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  appearance: none;
+  clip-path: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .size:hover {
+    color: var(--color-brass-ink);
+  }
+}
+
+.size:has(:checked) {
+  color: var(--color-brass-ink);
+  text-decoration: underline 1px var(--color-brass-ink);
+  text-underline-offset: 0.25em;
+}
+
+.size:has(:focus-visible) {
+  outline: 2px solid var(--color-brass-ink);
+  outline-offset: 2px;
+}
+
+.size > input:focus-visible {
+  outline: none;
+}
+
+.sizeSep {
+  color: var(--color-brass);
+}
+
+/* ------------------------------------------------------------ seal and send */
+
+/* The seal straddles the sheet's foot: its row overhangs the bottom edge by half the seal. */
+.sealRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  margin-bottom: calc(-1 * (var(--pad) + 8px) - 32px);
+}
+
+.seal {
+  display: inline-flex;
+  transition: transform 160ms var(--ease-out);
+  /* The wax straddles the sheet's edge; the words sit wholly on the sheet, beside its upper half. */
+  align-items: flex-end;
+  gap: 18px;
+  padding: 0 10px 0 0;
+  border-radius: 40px 8px 8px 40px;
+  text-align: left;
+  color: var(--color-rosemary);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .seal:hover .sealLabel {
+    color: var(--color-brass-ink);
+  }
+}
+
+/* Press feedback: the whole seal-and-label gives a little under the thumb. */
+.seal:active {
+  transform: scale(0.97);
+}
+
+/* Without JavaScript the letter cannot be sealed; the noscript note below says so. */
+:global(html:not(.js)) .seal {
+  cursor: not-allowed;
+}
+
+.wax {
+  flex: none;
+  width: 64px;
+  height: 64px;
+}
+
+/*
+ * The press: from where the thumb left it (0.97), the wax lifts (ease-out), drives down into the paper
+ * past rest (ease-in-out, a stamp accelerates into the sheet), then settles. Nothing jumps: frame one
+ * is the pressed state. Always declared, so animationend fires even when reduced motion shortens it.
+ */
+.pressed {
+  animation: seal-press 380ms linear;
+}
+
+@keyframes seal-press {
+  0% {
+    transform: scale(0.97);
+    animation-timing-function: var(--ease-out);
+  }
+  35% {
+    transform: translateY(-4px) scale(1.05);
+    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  75% {
+    transform: translateY(1px) scale(0.99);
+    animation-timing-function: var(--ease-out);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.sealText {
+  display: block;
+  margin-bottom: 38px;
+}
+
+.sealLabel {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 28px;
+  line-height: 1.1;
+  transition: color 200ms var(--ease-out);
+}
+
+.sealNote {
+  display: block;
+  margin-top: 3px;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-sage-ink);
+}
+
+.noscript,
+.errors {
+  margin-top: 56px;
+  padding-inline: var(--pad);
+}
+
+.noscript {
+  text-align: center;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-moss);
+}
+
+.errors p {
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-error);
+}
+
+.errors p + p {
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------ the brass tag */
+
+.tag {
+  display: block;
+}
+
+.tagBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 14px 24px;
+  border: 1px solid var(--color-brass);
+  border-radius: 22px 22px 8px 8px;
+  /* Flat brass, lifted a little towards gouache so it reads as metal on the kraft, not as more kraft. */
+  background: color-mix(in srgb, var(--color-brass-light) 70%, var(--color-gouache));
+  box-shadow: 0 16px 28px -20px color-mix(in srgb, var(--color-rosemary) 55%, transparent);
+  rotate: -4deg;
+}
+
+/* A punched hole (the page shows through) in a brass reinforcement ring. */
+.tagEyelet {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: var(--color-linen);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-brass-light) 85%, var(--color-gouache)),
+    0 0 0 4px var(--color-brass);
+}
+
+.tagLetters {
+  display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 50px;
+  line-height: 1.1;
+  color: var(--color-brass-ink);
+  /* One 1px deboss: the lit lower lip of the stamped letter. */
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-gouache) 70%, transparent);
+  white-space: nowrap;
+}
+
+.tagLetters[data-count="1"] {
+  font-size: 62px;
+}
+
+.tagLetters[data-count="3"] {
+  font-size: 36px;
+}
+
+.tagLetters[data-ghost] {
+  /* Unlettered: the house's A · E faintly struck, 3.44:1 at 50px. */
+  color: var(--color-brass);
+  text-shadow: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tagLetters[data-press] {
+    animation: tag-press 300ms var(--ease-silk);
+  }
+}
+
+@keyframes tag-press {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.tagCaption {
+  margin-top: 14px;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--color-sage-ink);
+}
+
+/* ---------------------------------------------------------- the reply card */
+
+.reply {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "text flacon"
+    "foot foot";
+  column-gap: 24px;
+  padding: var(--pad);
+  rotate: -1deg;
+}
+
+.replyText {
+  grid-area: text;
+  min-width: 0;
+}
+
+.replyTitle {
+  margin-top: 10px;
+  font-size: 40px;
+  line-height: 1.1;
+  outline-offset: 6px;
+}
+
+.replyBody {
+  margin-top: 16px;
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+.replyEmail {
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.replyReference {
+  margin-top: 18px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 26px;
+  line-height: 1.3;
+}
+
+.replyReference [data-reference] {
+  white-space: nowrap;
+}
+
+.replySignoff {
+  margin-top: 8px;
+  font-style: italic;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--color-moss);
+}
+
+.replyFlacon {
+  grid-area: flacon;
+  align-self: end;
+}
+
+.replyFlaconSvg {
+  display: block;
+  width: auto;
+  height: 150px;
+}
+
+.replyFoot {
+  grid-area: foot;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.replyHonest {
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-sage-ink);
+}
+
+.again {
+  margin-top: 14px;
+  display: inline-block;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-brass-ink);
+  text-decoration: underline 1px var(--color-brass);
+  text-underline-offset: 0.28em;
+  cursor: pointer;
+  transition:
+    color 200ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .again:hover {
+    color: var(--color-rosemary);
+  }
+}
+
+.again:active {
+  transform: scale(0.97);
+}
+
+/* The reply's vessel, in the book's inks: sepia lines, a sanguine wash for the perfume, and one stroke
+   of white gouache where the light catches the glass. */
+.silPour {
+  fill: var(--color-terracotta);
+  opacity: 0.16;
+}
+
+.silLine {
+  stroke: var(--color-rosemary);
+}
+
+.silLiquid {
+  stroke: var(--color-terracotta);
+}
+
+.silGlint {
+  stroke: var(--color-gouache);
+}
+
+@media (max-width: 639px) {
+  .replyFlaconSvg {
+    height: 110px;
+  }
+
+  .replyTitle {
+    font-size: 34px;
+  }
+}

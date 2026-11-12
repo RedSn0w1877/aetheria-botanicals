@@ -1,0 +1,860 @@
+/* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
+
+/*
+ * Chapter II, the composer: a two-page spread. The left page holds the presets line and three specimen
+ * tiers; the right page, "your formula", is a prescription set around the flacon. Type uses longhands
+ * (never the `font` shorthand) so the inherited old-style figures survive. What moves: the ratio bar and
+ * cure marker (transform), the radar's own d / cx / cy morph and the ink-in of the glyphs. The slider
+ * bead has no transition at all: it tracks the thumb.
+ */
+
+.noscript {
+  margin: 28px auto 0;
+  padding-inline: var(--gx);
+  text-align: center;
+}
+
+.spread {
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+/* ---------------------------------------------------------------- left page */
+
+.left {
+  min-width: 0;
+}
+
+.presets {
+  font-style: italic;
+  font-size: 17px;
+  line-height: 2;
+  color: var(--color-moss);
+}
+
+.presetsLead {
+  color: var(--color-moss);
+}
+
+.preset {
+  /* Inline in the sentence; the block padding only grows the hit area, never the line. */
+  padding-block: 7px;
+  margin-block: -7px;
+  font-style: italic;
+  color: var(--color-rosemary);
+  text-decoration: underline 1px transparent;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+  transition:
+    color 200ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .preset:hover {
+    color: var(--color-brass-ink);
+  }
+}
+
+.preset:active {
+  transform: scale(0.97);
+}
+
+.preset[aria-pressed="true"] {
+  color: var(--color-brass-ink);
+  text-decoration-color: var(--color-brass-ink);
+}
+
+.presetItem {
+  white-space: nowrap;
+}
+
+.presetSep {
+  color: var(--color-brass);
+  white-space: pre;
+}
+
+.tiers {
+  display: grid;
+  gap: 4.5rem;
+  margin-top: 3rem;
+}
+
+.tier {
+  min-width: 0;
+}
+
+.tierHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 14px;
+  row-gap: 2px;
+}
+
+.tierNumeral {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-brass-ink);
+}
+
+.tierTitle {
+  font-size: 40px;
+  line-height: 1.05;
+}
+
+.tierRole {
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-sage-ink);
+}
+
+.tierWhisper {
+  margin-top: 6px;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-moss);
+}
+
+/* Specimen entries: no boxes and no sliding marker. The chosen one is told by its seal dot, its
+   terracotta glyph and the brass-ink rule under its name. */
+.entries {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  min-width: 0;
+  /* The entries' 6px padding (room for the focus ring) hangs into the gutter, so the drawings and
+     names sit on the page margin with the tier heading. */
+  margin: 22px -6px 0;
+  padding: 0;
+  border: 0;
+}
+
+.entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 8px 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/*
+ * The radio itself draws nothing (appearance: none) but covers its whole label, not the 1px .bk-sr
+ * box: when Tab focuses it the browser scrolls the whole specimen into view, clear of the docked
+ * button; the ring is drawn on the specimen (the label) it covers.
+ */
+.entry > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  appearance: none;
+  clip-path: none;
+  cursor: pointer;
+}
+
+.entry:has(:focus-visible) {
+  outline: 2px solid var(--color-brass-ink);
+  outline-offset: 2px;
+}
+
+.entry > input:focus-visible {
+  outline: none;
+}
+
+.glyph {
+  display: block;
+  width: 56px;
+  height: 56px;
+  color: color-mix(in srgb, var(--color-moss) 70%, transparent);
+  transition:
+    color 200ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.glyph > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The pen for every line drawing in the chapter (specimens and cure vessels), and each specimen
+   stroke's ink timing: a stroke starts a beat (0.18s) after the one before. Kept here, not inline,
+   so nine server-rendered drawings don't each repeat it. */
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  --t: 1.2s;
+}
+
+.line > :nth-child(2) {
+  --d: 0.18s;
+}
+
+.line > :nth-child(3) {
+  --d: 0.36s;
+}
+
+.line > :nth-child(4) {
+  --d: 0.54s;
+}
+
+.line > :nth-child(5) {
+  --d: 0.72s;
+}
+
+.line > :nth-child(6) {
+  --d: 0.9s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .entry:hover .glyph {
+    color: var(--color-moss);
+  }
+}
+
+/* Press feedback on the specimen itself, never on its type. */
+.entry:active .glyph {
+  transform: scale(0.97);
+}
+
+/* The chosen specimen is drawn in sanguine and heightened with a hairline of white gouache on its lit
+   (upper-left) edge, the way the old studies on toned paper were finished. Static: no filter animates. */
+.entry:has(:checked) .glyph {
+  color: var(--color-terracotta);
+}
+
+.entry:has(:checked) .glyph > svg {
+  filter: drop-shadow(-0.75px -0.75px 0 var(--color-gouache));
+}
+
+.entryName {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--color-rosemary);
+  overflow-wrap: break-word;
+}
+
+.entry:has(:checked) .entryName {
+  text-decoration: underline 1px var(--color-brass-ink);
+  text-underline-offset: 0.2em;
+}
+
+.entry:has(:checked) .entryName::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--color-terracotta);
+  vertical-align: 0.14em;
+}
+
+.entryOrigin {
+  margin-top: 6px;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--color-sage-ink);
+}
+
+.descriptor {
+  min-height: 3em;
+  margin-top: 18px;
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--color-moss);
+}
+
+.strength {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 18px;
+}
+
+.strengthLabel {
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-sage-ink);
+}
+
+.strengthValue {
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-moss);
+}
+
+.figure {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 21px;
+  line-height: 1;
+  color: var(--color-rosemary);
+}
+
+/* ------------------------------------------------------------ strength slider */
+
+.slider {
+  position: relative;
+  height: 44px;
+  margin-top: 2px;
+  touch-action: pan-y;
+}
+
+.range {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.range::-webkit-slider-thumb {
+  width: 22px;
+  height: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.range::-moz-range-thumb {
+  width: 22px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+}
+
+/* Inset by half a thumb on each side, so 0..1 of the rail is exactly the thumb's travel. */
+.rail {
+  position: absolute;
+  top: 50%;
+  left: 11px;
+  right: 11px;
+  height: 1px;
+  background: var(--color-hairline);
+  pointer-events: none;
+  /* The bead's travel is measured in the rail's own width (cqi), so its track can be zero-wide and
+     never pushes past the rail. */
+  container-type: inline-size;
+}
+
+/* Ticks at 25, 50 and 75. */
+.rail::before {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+  background:
+    linear-gradient(var(--color-hairline), var(--color-hairline)) 25% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--color-hairline), var(--color-hairline)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--color-hairline), var(--color-hairline)) 75% 0 / 1px 100% no-repeat;
+}
+
+.fill {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--tone);
+  transform: scaleX(var(--pct));
+  transform-origin: 0 50%;
+}
+
+.beadTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  translate: calc(var(--pct) * 100cqi) 0;
+}
+
+.bead {
+  position: absolute;
+  top: -11px;
+  left: -11px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-brass);
+  border-radius: 50%;
+  background: var(--color-parchment);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-rosemary) 18%, transparent);
+}
+
+.slider:has(:focus-visible) .bead {
+  outline: 2px solid var(--color-brass-ink);
+  outline-offset: 3px;
+}
+
+.share {
+  margin-top: 2px;
+}
+
+.footnote {
+  margin-top: 4rem;
+  max-width: 34rem;
+}
+
+/* ------------------------------------------------- phones: the riding summary */
+
+.summary {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 calc(-1 * var(--gx)) 2rem;
+  padding: 10px var(--gx);
+  border-bottom: 1px solid var(--color-hairline);
+  background: var(--color-linen);
+}
+
+.summarySwatch {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rosemary) 24%, transparent);
+}
+
+.summaryWords {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-rosemary);
+}
+
+.summaryRatio {
+  flex: none;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-moss);
+}
+
+@media (min-width: 1024px) {
+  .summary {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------- right page */
+
+/* The right page is a size container: its prescription lays itself out by the room it has. */
+.right {
+  min-width: 0;
+  container: formula / inline-size;
+}
+
+/* Narrow (phones, and the right page of a 1024–1279px spread): one centred column. */
+.formula {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  text-align: center;
+}
+
+.head,
+.plate,
+.ratio,
+.cure,
+.radar,
+.cta {
+  min-width: 0;
+}
+
+.formulaTitle {
+  margin-top: 6px;
+  /* One line always: the name is a single word and a number. It scales with the right page. */
+  font-size: clamp(32px, 7cqi, 44px);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.formulaWords {
+  margin-top: 8px;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--color-moss);
+}
+
+.plate {
+  width: min(300px, 100%);
+}
+
+.flacon {
+  margin-inline: auto;
+}
+
+.imprint {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.ratio,
+.cure {
+  width: min(380px, 100%);
+}
+
+.radar {
+  width: min(380px, 100%);
+  margin: 0;
+}
+
+.cta {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.cta a {
+  display: inline-block;
+  padding-block: 10px;
+}
+
+/* Wide (a 1280px+ spread, and tablets): the bottle on the left, the prescription beside it, then the
+   radar and the letter link across the page. Compact enough to stay whole while it sticks. */
+@container formula (min-width: 520px) {
+  .formula {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-rows: auto auto 1fr auto auto;
+    grid-template-areas:
+      "plate head"
+      "plate ratio"
+      "plate cure"
+      "radar radar"
+      "cta cta";
+    align-items: start;
+    column-gap: 32px;
+    row-gap: 24px;
+    text-align: left;
+  }
+
+  .head {
+    grid-area: head;
+  }
+
+  .plate {
+    grid-area: plate;
+    justify-self: center;
+  }
+
+  .ratio {
+    grid-area: ratio;
+    width: auto;
+  }
+
+  .cure {
+    grid-area: cure;
+    width: auto;
+  }
+
+  .radar {
+    grid-area: radar;
+    justify-self: center;
+  }
+
+  .cta {
+    grid-area: cta;
+    text-align: center;
+  }
+
+  /* It stays in view while the left page scrolls, where the screen is tall enough to hold all of it. */
+  @media (min-width: 1024px) and (min-height: 820px) {
+    .formula {
+      position: sticky;
+      top: 6vh;
+    }
+  }
+}
+
+/* The narrow, single-column prescription is taller: it only sticks on very tall screens. */
+@container formula (max-width: 519.98px) {
+  @media (min-width: 1024px) and (min-height: 1250px) {
+    .formula {
+      position: sticky;
+      top: 6vh;
+    }
+  }
+}
+
+/* ratio bar */
+
+.ratioBar {
+  position: relative;
+  height: 10px;
+  margin-top: 8px;
+  overflow: hidden;
+  background: var(--color-herb);
+  container-type: inline-size;
+}
+
+.ratioSegment,
+.ratioSeam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  transition: transform 600ms var(--ease-silk);
+}
+
+.ratioSegment {
+  right: 0;
+  transform-origin: 0 50%;
+}
+
+/* A seam is zero-wide and placed in the bar's own width (cqi), so nothing hangs past the bar. */
+.ratioSeam {
+  width: 0;
+}
+
+.ratioSeam::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background: var(--color-parchment);
+}
+
+.ratioLegend {
+  margin-top: 8px;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-moss);
+}
+
+/* cure */
+
+.cureHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.cureVessel {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  color: var(--color-brass-ink);
+}
+
+.cureSentence {
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-rosemary);
+}
+
+.ruler {
+  position: relative;
+  height: 40px;
+  margin-top: 12px;
+  container-type: inline-size;
+}
+
+/* The day line, with a tick each month and a shorter one each fortnight. */
+.ruler::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  border-right: 1px solid var(--color-hairline);
+  background:
+    linear-gradient(var(--color-hairline), var(--color-hairline)) 0 4px / 100% 1px no-repeat,
+    linear-gradient(90deg, var(--color-hairline) 1px, transparent 1px) 0 0 / calc(100% / 6) 100% repeat-x,
+    linear-gradient(90deg, var(--color-hairline) 1px, transparent 1px) 0 2px / calc(100% / 12) 5px repeat-x;
+}
+
+.rulerRest {
+  position: absolute;
+  top: 11px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: color-mix(in srgb, var(--color-moss) 75%, transparent);
+  transform: scaleX(var(--pct));
+  transform-origin: 0 50%;
+  transition: transform 900ms var(--ease-silk);
+}
+
+.rulerTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  translate: calc(var(--pct) * 100cqi) 0;
+  transition: translate 900ms var(--ease-silk);
+}
+
+.rulerMarker {
+  position: absolute;
+  top: 6px;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--color-brass);
+  background: var(--color-parchment);
+  rotate: 45deg;
+}
+
+.rulerMarker::after {
+  content: "";
+  position: absolute;
+  inset: 2.5px;
+  background: var(--color-terracotta);
+}
+
+.ruler > span:not(.rulerRest, .rulerTrack) {
+  position: absolute;
+  top: 24px;
+  white-space: nowrap;
+  font-style: italic;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--color-sage-ink);
+}
+
+/* radar */
+
+.radarSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.radarGrid {
+  fill: none;
+  stroke: var(--color-hairline);
+  stroke-width: 0.85;
+}
+
+.radarShape {
+  fill: color-mix(in srgb, var(--color-terracotta) 12%, transparent);
+  stroke: var(--color-brass-ink);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  transition: d 600ms var(--ease-silk);
+}
+
+.radarSvg circle {
+  fill: var(--color-parchment);
+  stroke: var(--color-brass-ink);
+  stroke-width: 1;
+  transition:
+    cx 600ms var(--ease-silk),
+    cy 600ms var(--ease-silk);
+}
+
+.radarSvg text {
+  font-family: var(--font-text);
+  font-style: italic;
+  font-size: 13px;
+  fill: var(--color-sage-ink);
+}
+
+.radarSvg tspan + tspan {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 300;
+  font-size: 15px;
+  fill: var(--color-rosemary);
+}
+
+.radarCaption {
+  margin-top: 10px;
+  text-align: center;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-moss);
+}
+
+/* ------------------------------------------------------------------- phones */
+
+@media (max-width: 639px) {
+  .entries {
+    gap: 12px;
+  }
+
+  .glyph {
+    width: 44px;
+    height: 44px;
+  }
+
+  .entryName {
+    font-size: 20px;
+  }
+
+  .tierTitle {
+    font-size: 34px;
+  }
+}
+
+/*
+ * Direct manipulation: while the strength slider is dragged the readouts follow in 200ms on a strong
+ * ease-out; for arrow keys they jump (book/tier-control.tsx toggles both on the section).
+ */
+:global(#compose[data-dragging]) .ratioSegment,
+:global(#compose[data-dragging]) .ratioSeam,
+:global(#compose[data-dragging]) .rulerRest,
+:global(#compose[data-dragging]) .rulerTrack,
+:global(#compose[data-dragging]) .radarShape,
+:global(#compose[data-dragging]) .radarSvg circle,
+:global(#compose[data-dragging] [data-xfade]) [data-tint="b"] {
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+}
+
+:global(#compose[data-instant]) .ratioSegment,
+:global(#compose[data-instant]) .ratioSeam,
+:global(#compose[data-instant]) .rulerRest,
+:global(#compose[data-instant]) .rulerTrack,
+:global(#compose[data-instant]) .radarShape,
+:global(#compose[data-instant]) .radarSvg circle,
+:global(#compose[data-instant] [data-xfade]) [data-tint="b"] {
+  transition-duration: 0ms;
+}

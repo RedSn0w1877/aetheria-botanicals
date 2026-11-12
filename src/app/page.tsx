@@ -1,31 +1,37 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
-import { SiteNav } from "@/components/SiteNav";
-import { ApothecaryHero } from "@/components/ApothecaryHero";
-import { CompoundBlender } from "@/components/CompoundBlender";
-import { TerroirInspector } from "@/components/TerroirInspector";
-import { ExtractionRitual } from "@/components/ExtractionRitual";
-import { AllocationDrawer } from "@/components/AllocationDrawer";
-import { MonographFooter } from "@/components/MonographFooter";
+import { ChapterIndex } from "@/components/book/chapter-index";
+import { Colophon } from "@/components/book/colophon";
+import { Contents } from "@/components/book/contents";
+import { InkObserver } from "@/components/book/ink-observer";
+import { CommissionChapter } from "@/components/chapters/commission";
+import { ComposeChapter } from "@/components/chapters/compose";
+import { FrontispieceChapter } from "@/components/chapters/frontispiece";
+import { ProvenanceChapter } from "@/components/chapters/provenance";
+import { RitualChapter } from "@/components/chapters/ritual";
 
-export default function AtelierPage() {
+/**
+ * The book: a frontispiece, four chapters and a colophon, read top to bottom with native scroll.
+ * Server-rendered editorial with a few client islands; the Contents sheet is a native <dialog>.
+ * InkObserver goes last so it runs once everything above it has hydrated.
+ */
+export default function BookPage() {
   return (
     <>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:bg-rosemary focus:px-5 focus:py-3 focus:font-sans focus:text-[11px] focus:uppercase focus:tracking-[0.3em] focus:text-linen"
-      >
-        Skip to content
+      <a href="#frontispiece-title" className="bk-skip">
+        Skip to the book
       </a>
-      <SiteNav />
+      <ChapterIndex />
+      <Contents />
       <main id="main">
-        <ApothecaryHero />
-        <CompoundBlender />
-        <TerroirInspector />
-        <ExtractionRitual />
-        <AllocationDrawer />
+        <FrontispieceChapter />
+        <ComposeChapter />
+        <ProvenanceChapter />
+        <RitualChapter />
+        <CommissionChapter />
       </main>
-      <MonographFooter />
+      <Colophon />
+      <InkObserver />
     </>
   );
 }

@@ -1,0 +1,179 @@
+/* © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute. */
+
+/*
+ * The two flacons, both offline Cycles renders (blender/render.py), no WebGL.
+ * - .poster: the frontispiece's photograph in its niche, plus a custom-tint overlay and a one-time glint.
+ * - .figure: Compose's layered flacon: the empty set, the tinted liquid, the glass on top.
+ * The liquid is tinted in CSS: a colour multiplied into a grey+alpha render of the liquid, masked by
+ * the same render. Only opacity and transform ever animate.
+ */
+
+/* ------------------------------------------------------------------- shared tint */
+
+/* Two stacked tints, A (shown) and B (fading in over it); flacon/tincture.ts drives them. */
+.tint,
+.liquid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tint > span,
+.liquid > span {
+  position: absolute;
+  inset: 0;
+}
+
+.tint > [data-tint="b"],
+.liquid > [data-tint="b"] {
+  opacity: 0;
+}
+
+[data-xfade] .tint > [data-tint="b"],
+[data-xfade] .liquid > [data-tint="b"] {
+  opacity: 1;
+  transition: opacity 600ms var(--ease-silk);
+}
+
+/* ------------------------------------------------------------------------ poster */
+
+.poster {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+
+.posterImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /*
+   * Feathers the photograph's upper sides and crown into the parchment niche; the floor stays solid
+   * down to the brass baseline. The flacon itself sits well inside the opaque core.
+   */
+  mask-image: radial-gradient(78% 88% at 50% 70%, #000 72%, transparent 100%);
+}
+
+/*
+ * The custom tint is dormant until the visitor composes ([data-custom=true]), so the liquid pass is only
+ * fetched then. It paints the visitor's colour over the rendered amber, shaded by the same liquid.
+ */
+.poster[data-custom="true"] .tint > [data-tint="a"] {
+  background: var(--tint-a) var(--liq) center / 100% 100% no-repeat;
+  background-blend-mode: multiply;
+  mask: var(--liq) center / 100% 100% no-repeat;
+}
+
+.poster[data-custom="true"] .tint > [data-tint="b"] {
+  background: var(--tint-b) var(--liq) center / 100% 100% no-repeat;
+  background-blend-mode: multiply;
+  mask: var(--liq) center / 100% 100% no-repeat;
+}
+
+/*
+ * The glint: once, after the poster has decoded, a soft-edged window sweeps left to right while the
+ * highlight inside it counter-moves, so the light travels and the highlight stays on the glass.
+ * Both are compositor transforms. The highlight image is only requested once the sweep starts.
+ */
+.glintWin {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateX(-100%);
+  mask-image: linear-gradient(90deg, transparent, #000 35%, #000 65%, transparent);
+  /* Added light, not paint: the sweep brightens the crystal it crosses (the window, being masked, is
+     its own group, so the blend sits on it rather than on the highlight inside). */
+  mix-blend-mode: plus-lighter;
+}
+
+.glintImg {
+  position: absolute;
+  inset: 0;
+  transform: translateX(100%);
+}
+
+.poster[data-glint="run"] .glintWin {
+  animation: glint-window 1.2s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.poster[data-glint="run"] .glintImg {
+  background: var(--glint) center / 100% 100% no-repeat;
+  animation: glint-light 1.2s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes glint-window {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes glint-light {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* ------------------------------------------------------------------ layered figure */
+
+.figure {
+  position: relative;
+  width: min(300px, 100%);
+  margin: 0 auto;
+  aspect-ratio: 5 / 7;
+  /* A semicircular arch on a 5:7 box: horizontal radius 50% of the width, vertical 2.5/7 of the height. */
+  border-radius: 50% 50% 0 0 / 35.714% 35.714% 0 0;
+  overflow: clip;
+  background: var(--color-parchment);
+}
+
+.figure > div {
+  position: absolute;
+  inset: 0;
+}
+
+/* Which rendered liquid pass shows; tincture.ts swaps data-fill when the band changes. */
+.figure[data-fill="low"] {
+  --liq: var(--liq-low);
+}
+
+.figure[data-fill="mid"] {
+  --liq: var(--liq-mid);
+}
+
+.figure[data-fill="high"] {
+  --liq: var(--liq-high);
+}
+
+/* The settle runs from the liquid's foot. */
+.liquid {
+  transform-origin: 50% 100%;
+}
+
+/* Nothing is requested until the figure is within a screen of the viewport (data-near). */
+.figure[data-near="true"] .set {
+  background: var(--set) center / 100% 100% no-repeat;
+}
+
+.figure[data-near="true"] .glass {
+  background: var(--glass) center / 100% 100% no-repeat;
+}
+
+.figure[data-near="true"] .liquid > [data-tint="a"] {
+  background: var(--tint-a) var(--liq) center / 100% 100% no-repeat;
+  background-blend-mode: multiply;
+  mask: var(--liq) center / 100% 100% no-repeat;
+}
+
+.figure[data-near="true"] .liquid > [data-tint="b"] {
+  background: var(--tint-b) var(--liq) center / 100% 100% no-repeat;
+  background-blend-mode: multiply;
+  mask: var(--liq) center / 100% 100% no-repeat;
+}

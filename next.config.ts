@@ -21,29 +21,18 @@ const nextConfig: NextConfig = {
 
   reactStrictMode: true,
 
-  images: {
-    unoptimized: true,
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
-  },
+  // app/global-not-found.tsx is the 404: a document of its own, so the 404 leaf is not serialized into
+  // every page's RSC payload as the root layout's not-found fallback (about 6 KB of each page's HTML).
+  experimental: { globalNotFound: true },
+
+  // next/link and static imports already carry the basePath. Raw URLs (the plate SVGs under
+  // /plates/, <link rel=license>) don't, so lib/base-path.ts prefixes them from this value.
+  env: { NEXT_PUBLIC_BASE_PATH: isProd ? REPO_PATH : "" },
 
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'motion', '@react-three/fiber', '@react-three/drei'],
-  },
-
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.(glsl|vs|fs|vert|frag)$/,
-      exclude: /node_modules/,
-      use: ['raw-loader', 'glslify-loader'],
-    });
-    return config;
+    // Strip debug logging from the production bundle, but keep console.error (real failures)
+    // and console.info (the AttributionSentinel's copyright signature).
+    removeConsole: isProd ? { exclude: ["error", "info"] } : false,
   },
 };
 

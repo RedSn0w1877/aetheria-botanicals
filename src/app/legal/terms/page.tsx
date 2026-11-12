@@ -1,26 +1,26 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
 import type { Metadata } from "next";
-import { LegalFolio } from "@/components/legal/legal-folio";
+import { LegalPage } from "@/components/legal/legal-page";
 
 export const metadata: Metadata = {
-  title: "Terms of Use",
+  title: "Notes on terms",
   description: "Terms governing use of the Aetheria Botanicals concept site by HVNF Studios.",
 };
 
 export default function TermsPage() {
   return (
-    <LegalFolio
-      title="Terms of use"
-      updated="17 September 2026"
+    <LegalPage
+      title="Notes on terms"
+      revised="12 November 2026"
       clauses={[
         {
           heading: "A study, not a shop",
           body: (
             <p>
               This site is a design and engineering demonstration by HVNF Studios. Aetheria Botanicals does not
-              exist as a business. No perfume is made, sold or shipped, no allocation is held, and nothing you do
-              here, including the reservation drawer, forms an agreement of any kind.
+              exist as a business. No perfume is made, sold or shipped, no sample is poured, and nothing you do
+              here, including the commission letter, forms an agreement of any kind.
             </p>
           ),
         },
@@ -49,9 +49,9 @@ export default function TermsPage() {
           heading: "Illustrative figures",
           body: (
             <p>
-              Harvest lots, distillation temperatures, soil readings, extraction ratios and cure times are written to
-              feel plausible. They describe no real product, farm or laboratory, and the site is provided as-is,
-              without warranties of any kind.
+              Prices, harvest lots, distillation temperatures, soil readings, extraction ratios and cure times are
+              written to feel plausible. They describe no real product, farm or laboratory; nothing is for sale and no
+              payment is ever taken. The site is provided as-is, without warranties of any kind.
             </p>
           ),
         },
