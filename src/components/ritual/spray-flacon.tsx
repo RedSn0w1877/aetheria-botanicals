@@ -2,7 +2,7 @@
 
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
-import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FocusEvent, type KeyboardEvent, type PointerEvent } from "react";
 import s from "@/components/chapters/ritual.module.css";
 import { FLACON_H, FLACON_W, HOSE_X, HOSE_Y, NOZZLE_X, NOZZLE_Y } from "@/components/ritual/plates/flacon-grid";
 import { getNote, mixTincture, type Selection } from "@/lib/blend-formulas";
@@ -162,6 +162,16 @@ export function SprayFlacon() {
     if (!event.repeat) start();
   };
 
+  /*
+   * Tab reaches this button from chapter III, thousands of pixels up (the ritual's steps hold no other
+   * stop), and the page's smooth anchor scrolling would glide there for over a second while the
+   * chapters between lay out. A keyboard move gets no animation: jump straight to the bottle.
+   * Keyboard focus only (:focus-visible), so a pointer press never moves the page under the finger.
+   */
+  const onFocus = (event: FocusEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.matches(":focus-visible")) event.currentTarget.scrollIntoView({ block: "center", behavior: "instant" });
+  };
+
   const onKeyUp = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key !== " " && event.key !== "Enter") return;
     event.preventDefault();
@@ -185,6 +195,7 @@ export function SprayFlacon() {
         onLostPointerCapture={stop}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
+        onFocus={onFocus}
         onBlur={stop}
         onContextMenu={(event) => event.preventDefault()}
       >

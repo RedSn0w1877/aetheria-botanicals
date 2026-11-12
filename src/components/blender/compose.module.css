@@ -31,8 +31,9 @@
   color: var(--color-moss);
 }
 
+/* Halfway from moss to rosemary: 7.28:1 on the stock (moss alone is 6.47), still a step under the presets. */
 .presetsLead {
-  color: var(--color-moss);
+  color: color-mix(in srgb, var(--color-moss) 50%, var(--color-rosemary));
 }
 
 .preset {

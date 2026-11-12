@@ -15,7 +15,7 @@ import { useActiveSection } from "./use-active-section";
  *   tab out to show the chapter's name.
  *   Only transforms animate.
  * - Below 1024px: no fixed bar. A small "Contents" button docks bottom-left once the frontispiece has
- *   scrolled away.
+ *   scrolled away, and steps aside while the reader scrolls on or writes in the letter.
  *
  * It also carries the Contents dialog's two scripted behaviours: closing it when one of its entries is
  * followed, and opening/closing it in browsers that don't support invoker commands yet.
@@ -37,6 +37,48 @@ export function ChapterIndex() {
       });
       observer.observe(frontispiece);
     }
+
+    /*
+     * On a phone the dock has no margin to stand in, so it sits over the text column. It steps aside
+     * while the reader reads on (scrolling down) or writes in a blank of the letter, and comes back on
+     * a scroll up the reader makes, where a reader reaches for the contents. Only a reader's own
+     * scroll counts as "up": when chapters II to VI lay out after a long jump, scroll anchoring moves
+     * the page up by itself, and that must not bring the dock back over the text. Attribute only,
+     * written when it flips; every listener is passive and does nothing between scrolls.
+     */
+    let anchor = window.scrollY;
+    let down = false;
+    let typing = false;
+    let input = 0;
+    const onInput = () => {
+      input = performance.now();
+    };
+    const INPUTS = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
+    const paint = () => button?.toggleAttribute("data-away", down || typing);
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (down ? y > anchor : y < anchor) anchor = y;
+      else if (down && performance.now() - input > 600) anchor = y;
+      else if (Math.abs(y - anchor) > 24) {
+        down = !down;
+        anchor = y;
+        paint();
+      }
+    };
+    const isField = (target: EventTarget | null) =>
+      target instanceof HTMLElement && target.matches("input:not([type=radio]):not([type=checkbox]), textarea, select");
+    const onFocusIn = (event: FocusEvent) => {
+      typing = isField(event.target);
+      paint();
+    };
+    const onFocusOut = () => {
+      typing = false;
+      paint();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    for (const type of INPUTS) window.addEventListener(type, onInput, { capture: true, passive: true });
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
 
     const invokersAreNative = "commandForElement" in HTMLButtonElement.prototype;
     const onClick = (event: MouseEvent) => {
@@ -64,6 +106,10 @@ export function ChapterIndex() {
     return () => {
       observer?.disconnect();
       document.removeEventListener("click", onClick);
+      window.removeEventListener("scroll", onScroll);
+      for (const type of INPUTS) window.removeEventListener(type, onInput, { capture: true });
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
     };
   }, []);
 

@@ -66,6 +66,17 @@
   color: var(--color-rosemary);
 }
 
+/*
+ * Phones: the letter is filled in with a fingertip, so it is ruled at 46px. Two blanks on lines next to
+ * each other then each own a full 44px to tap with 2px clear between them (on the 38px rule the lower
+ * one covered the upper; on a 44px rule the two boxes met and hit-testing gave the seam to the lower).
+ */
+@media (max-width: 639px) {
+  .sheet {
+    line-height: 46px;
+  }
+}
+
 .sheet p + p {
   margin-top: 14px;
 }
@@ -89,11 +100,15 @@
   border-bottom: 1px dotted var(--color-brass-ink);
   border-radius: 0;
   background: transparent;
-  /* 44px to tap; the negative margin gives the extra back so the line keeps its height. */
+  /*
+   * Exactly 44px to tap (padding over the line, 2px and the dotted rule under it), so on the phones'
+   * 46px rule a blank never reaches into the line above or below. The negative margin gives the extra
+   * back (margin + padding stay 6px), so the line keeps its height and the text its place.
+   */
   position: relative;
   z-index: 1;
-  padding-block: 22px 2px;
-  margin-block: -16px 0;
+  padding-block: calc(41px - 1lh) 2px;
+  margin-block: calc(1lh - 35px) 0;
   font-style: italic;
   line-height: 1.5;
   color: var(--color-brass-ink);
@@ -153,15 +168,27 @@
   white-space: nowrap;
 }
 
+/*
+ * 44px to tap, though the sizes sit in a sentence: the box is padded out to 44 × 44 and an equal
+ * negative margin gives the space back, so the figures keep their places in the line. "50" is the
+ * narrow one and takes the wider margin.
+ */
 .size {
   position: relative;
   display: inline-block;
-  padding: 0 3px;
+  min-width: 44px;
+  padding: max(0px, (44px - 1lh) / 2) 3px;
+  margin: min(0px, (1lh - 44px) / 2) -3px;
+  text-align: center;
   border-radius: 3px;
   font-style: italic;
   color: var(--color-sage-ink);
   cursor: pointer;
   transition: transform 160ms var(--ease-out);
+}
+
+.size:first-of-type {
+  margin-inline: -8px;
 }
 
 /* Every pressable answers the press. */

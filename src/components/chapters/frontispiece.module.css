@@ -35,6 +35,23 @@
   pointer-events: none;
   user-select: none;
   transition: transform 900ms var(--ease-silk);
+  /*
+   * The light stays out of the type: thinned to 30% behind the title and its subline (a soft ellipse,
+   * placed in px because the title sits a fixed distance under the masthead), feathering back to full
+   * strength around them, so the shadows read as light on the paper, never as a blur behind the words.
+   */
+  mask-image: radial-gradient(ellipse 62% 128px at 50% 222px, rgb(0 0 0 / 0.3) 45%, #000 100%);
+}
+
+/* Desktop: the two margin notes either side of the niche get the same quiet patch. */
+@media (min-width: 1024px) {
+  .leafLight {
+    mask-image:
+      radial-gradient(ellipse 36% 130px at 50% 252px, rgb(0 0 0 / 0.3) 45%, #000 100%),
+      radial-gradient(ellipse 14% 20% at 75% 63%, rgb(0 0 0 / 0.3) 40%, #000 100%),
+      radial-gradient(ellipse 14% 14% at 26% 63%, rgb(0 0 0 / 0.3) 40%, #000 100%);
+    mask-composite: intersect;
+  }
 }
 
 .page {

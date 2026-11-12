@@ -205,6 +205,13 @@
     html {
       scroll-behavior: smooth;
     }
+
+    /* A keyboard move never glides: when Tab (or Enter on a link) brings focus somewhere, the page is
+       already there, so the ring never lands off screen while the scroll catches up. A pointer's
+       click on a Contents entry or a link still glides. */
+    html:has(:focus-visible) {
+      scroll-behavior: auto;
+    }
   }
 
   /* While the Contents <dialog> is open the page behind it does not scroll. */
@@ -577,7 +584,9 @@
     top: 16px;
     left: 16px;
     z-index: 60;
-    padding: 10px 16px;
+    /* At least 44px tall, like every other control in the book (fixed, so it is a block and min-height holds). */
+    min-height: 44px;
+    padding: 12px 16px;
     background: var(--color-rosemary);
     color: var(--color-linen);
     font-family: var(--font-text);

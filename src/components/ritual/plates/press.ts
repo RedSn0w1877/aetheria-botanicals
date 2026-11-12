@@ -1,6 +1,6 @@
 // © 2026 HVNF Studios. All rights reserved. Portfolio sample — do not redistribute.
 
-import { num } from "@/lib/svg-string";
+import { el, num } from "@/lib/svg-string";
 import {
   BRASS,
   CLAY,
@@ -52,17 +52,41 @@ const LEAVES = [
 const CX = 346;
 const CY = 50;
 
+/** A segment from (x1, y1) to (x2, y2). */
+type Seg2 = readonly [number, number, number, number];
+
+/**
+ * Separate strokes as one path in relative commands at 1 decimal (a tenth of a unit is ~0.1 px on
+ * screen). The plate ships under the 10 KB cap this way; absolute M/L pairs at 2 decimals were 16 KB.
+ * Positions are rounded before differencing, so the error never accumulates along the path.
+ */
+function segmentsD(segments: ReadonlyArray<Seg2>): string {
+  const r = (v: number) => Math.round(v * 10) / 10;
+  const n = (v: number) => num(v, 1).replace(/^(-?)0\./, "$1.");
+  const pair = (a: number, b: number) => `${n(a)}${b < 0 ? "" : " "}${n(b)}`;
+  let d = "";
+  let px = 0;
+  let py = 0;
+  segments.forEach(([x1, y1, x2, y2], i) => {
+    const [ax, ay, bx, by] = [r(x1), r(y1), r(x2), r(y2)];
+    if (i === 0) d += `M${pair(ax, ay)}`;
+    else if (ax !== px || ay !== py) d += `m${pair(ax - px, ay - py)}`;
+    d += `l${pair(bx - ax, by - ay)}`;
+    px = bx;
+    py = by;
+  });
+  return d;
+}
+
 /**
  * A frost star: six hairline arms, each with a pair of short side branches part-way out (and a
  * second pair on the larger stars), the way frost is drawn in the old natural histories.
  */
 function frostStarD(cx: number, cy: number, r: number): string {
-  let d = "";
-  const at = (a: number, len: number, from = 0) =>
-    `M${num(cx + Math.cos(a) * from)} ${num(cy + Math.sin(a) * from)}L${num(cx + Math.cos(a) * len)} ${num(cy + Math.sin(a) * len)}`;
+  const segments: Seg2[] = [];
   for (let i = 0; i < 6; i += 1) {
     const a = (Math.PI / 3) * i - Math.PI / 2;
-    d += at(a, r);
+    segments.push([cx, cy, cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
     const branches = r > 11 ? [0.45, 0.72] : [0.55];
     for (const t of branches) {
       const bx = cx + Math.cos(a) * r * t;
@@ -70,22 +94,30 @@ function frostStarD(cx: number, cy: number, r: number): string {
       const len = r * (0.42 - t * 0.25);
       for (const side of [-1, 1]) {
         const b = a + side * (Math.PI / 4);
-        d += `M${num(bx)} ${num(by)}L${num(bx + Math.cos(b) * len)} ${num(by + Math.sin(b) * len)}`;
+        segments.push([bx, by, bx + Math.cos(b) * len, by + Math.sin(b) * len]);
       }
     }
   }
-  return d;
+  return segmentsD(segments);
 }
 
 /** The shade edge of a steel plate: short diagonal strokes along its lower face, in the plates' own hand. */
 function steelShadeD(x: number, y: number, w: number, h: number): string {
-  let d = "";
-  for (let sx = x + 3; sx < x + w - 2; sx += 3.2) d += `M${num(sx)} ${num(y + h - 1)}l${num(2.4)} ${num(-h * 0.45)}`;
-  return d;
+  const segments: Seg2[] = [];
+  for (let sx = x + 3; sx < x + w - 2; sx += 3.2) segments.push([sx, y + h - 1, sx + 2.4, y + h - 1 - h * 0.45]);
+  return segmentsD(segments);
 }
 
 export function pressSvg(): string {
   const body = [
+    // Shared geometry, drawn below through <use>: the steel plates' shade edge (both plates are the
+    // same size, so one path at y 0 serves both) and the frost stars.
+    el(
+      "defs",
+      null,
+      path(steelShadeD(122, 0, 156, 14), { id: "ps" }),
+      ...CRYSTALS.map(([cx, cy, r], i) => stroke(frostStarD(cx, cy, r), { id: `pr${i}` })),
+    ),
     // Liquid nitrogen.
     fade(
       [0.45, 0.8],
@@ -139,7 +171,7 @@ export function pressSvg(): string {
     // The lower plate and its legs.
     path(rectD(122, 250, 156, 14), { fill: PAPER, stroke: "none" }),
     draw([0, 0.3], rectD(122, 250, 156, 14)),
-    fade([0, 0.3], { stroke: INK, "stroke-opacity": 0.45, "stroke-width": 0.6 }, path(steelShadeD(122, 250, 156, 14))),
+    fade([0, 0.3], { stroke: INK, "stroke-opacity": 0.45, "stroke-width": 0.6 }, el("use", { href: "#ps", y: 250 })),
     draw([0, 0.3], "M140 264V300M260 264V300", { "stroke-width": 1 }),
 
     // The upper plate, pressed down onto the leaves; live CSS lifts it 92 units and lowers it again.
@@ -149,7 +181,7 @@ export function pressSvg(): string {
       null,
       path(rectD(122, 192, 156, 14), { fill: PAPER, stroke: "none" }),
       draw([0, 0.3], rectD(122, 192, 156, 14)),
-      path(steelShadeD(122, 192, 156, 14), { stroke: INK, "stroke-opacity": 0.45, "stroke-width": 0.6 }),
+      el("use", { href: "#ps", y: 192, stroke: INK, "stroke-opacity": 0.45, "stroke-width": 0.6 }),
       path("M130 199H270", { stroke: BRASS, "stroke-opacity": 0.6, "stroke-width": 0.75 }),
       // Chilled steel: a gouache light along the plate's top edge.
       path("M126 194.5H274", { stroke: GOUACHE, "stroke-width": 1.6 }),
@@ -166,13 +198,15 @@ export function pressSvg(): string {
     ),
 
     // Frost stars, forming one after another: a faint sepia under-drawing, heightened in gouache.
-    ...CRYSTALS.map(([cx, cy, r], i) => {
+    // Each star is drawn twice from its <defs> geometry (the under-drawing offset by 0.6). The group's
+    // live dash timing inherits into both <use>s; pathLength travels with the path.
+    ...CRYSTALS.map(([, , r], i) => {
       const start = 0.42 + i * 0.06;
       return drawGroup(
         [start, Math.min(start + 0.2, 1)],
         null,
-        stroke(frostStarD(cx + 0.6, cy + 0.6, r), { stroke: MOSS, "stroke-opacity": 0.35, "stroke-width": 0.6 }),
-        stroke(frostStarD(cx, cy, r), { stroke: GOUACHE, "stroke-width": r > 11 ? 1.1 : 0.9 }),
+        el("use", { href: `#pr${i}`, x: 0.6, y: 0.6, stroke: MOSS, "stroke-opacity": 0.35, "stroke-width": 0.6 }),
+        el("use", { href: `#pr${i}`, stroke: GOUACHE, "stroke-width": r > 11 ? 1.1 : 0.9 }),
       );
     }),
 

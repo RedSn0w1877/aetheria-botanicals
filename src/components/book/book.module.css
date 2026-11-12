@@ -56,10 +56,15 @@
     transform 160ms var(--ease-out);
 }
 
+/* The brass rule under the words is an underline, not a border, so the 44px box below can't move it. */
 .mastCommission {
-  padding-bottom: 2px;
-  border-bottom: 1px solid var(--color-brass);
   color: var(--color-brass-ink);
+  text-decoration: underline 1px var(--color-brass);
+  text-underline-offset: calc(0.28em + 2px);
+  text-decoration-skip-ink: none;
+  transition:
+    color 200ms ease,
+    text-decoration-color 200ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -69,23 +74,24 @@
 
   .mastCommission:hover {
     color: var(--color-rosemary);
-    border-color: var(--color-rosemary);
+    text-decoration-color: var(--color-rosemary);
   }
 }
 
-/* At least 44px to tap, without moving the type: an invisible hit area around each word. */
+/*
+ * At least 44px to tap, without moving the type: each word's own box is padded out to 44px tall
+ * (1lh is its line), and an equal negative margin gives the space back to the line.
+ */
 .mastAction,
 .mastCommission,
 .wordmark {
+  /* Above the tagline's row, which the boxes' lower edge reaches into. */
   position: relative;
-}
-
-.mastAction::after,
-.mastCommission::after,
-.wordmark::after {
-  content: "";
-  position: absolute;
-  inset: -14px -8px;
+  z-index: 1;
+  display: inline-block;
+  min-width: 44px;
+  padding-block: max(0px, (44px - 1lh) / 2);
+  margin-block: min(0px, (1lh - 44px) / 2);
 }
 
 /* A press you can feel on the one button up here. Never from nothing: 0.97, and only transform. */
@@ -280,7 +286,8 @@
     visibility 0s linear 180ms;
 }
 
-.dock[data-show] {
+/* data-away: the reader is scrolling on or writing (chapter-index.tsx). Focus keeps it in place. */
+.dock[data-show]:is(:not([data-away]), :focus-visible) {
   transform: none;
   visibility: visible;
   transition:
@@ -288,7 +295,7 @@
     visibility 0s;
 }
 
-.dock[data-show]:active {
+.dock[data-show]:not([data-away]):active {
   transform: scale(0.97);
   transition-duration: 160ms;
 }
@@ -574,8 +581,15 @@
 .colophonLinks a,
 .colophonReturn a {
   display: inline-block;
-  padding-block: 12px;
-  margin-block: -12px;
+  padding: 12px 2px;
+  margin: -12px -2px;
+}
+
+/* The way back sits 20px under the legal links: its box starts 8px over its line, not 12, so the two
+   boxes never overlap and each owns its full 44px. */
+.colophonReturn a {
+  padding-top: 8px;
+  margin-top: -8px;
 }
 
 .colophonReturn {
